@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PM Shutdown Monitor</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f5fa;--card:#fff;--tx:#172033;--mut:#667189;--bd:#e1e6f0;--hd:#14203f;--blue:#3b82f6;--amber:#f5a524;--green:#22a06b;--grey:#9aa4b8;--red:#e5484d;--wk:#eef1f7;--hol:#fff3cd;--ghost:#f8c9ad;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1220;--card:#161d30;--tx:#e8ecf7;--mut:#93a0bd;--bd:#26304a;--hd:#0a0f1d;--wk:#1b2338;--hol:#463b12;--ghost:#7a4a30}}
+:root[data-theme="dark"]{--bg:#0d1220;--card:#161d30;--tx:#e8ecf7;--mut:#93a0bd;--bd:#26304a;--hd:#0a0f1d;--wk:#1b2338;--hol:#463b12;--ghost:#7a4a30}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--tx);font:14px/1.45 "Noto Sans Thai",Tahoma,system-ui,sans-serif;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.app{display:flex;min-height:100vh}
+.side{width:218px;flex:none;background:linear-gradient(180deg,var(--hd),#243c80);color:#fff;position:sticky;top:0;height:100vh;padding:16px 12px;display:flex;flex-direction:column;gap:5px;overflow:auto}
+.side h1{font-size:17px;margin:0 0 12px;line-height:1.3}.side h1 small{display:block;font-size:11px;font-weight:400;opacity:.7}
+.nv{background:none;border:0;color:#cfd8f3;text-align:left;padding:10px 12px;border-radius:10px;font:inherit;cursor:pointer;transition:.2s}
+.nv:hover{background:#ffffff22;transform:translateX(3px)}.nv.on{background:#fff;color:#14203f;font-weight:600}
+.sp{flex:1}.side label,.side .mt{font-size:11px;opacity:.75}
+.side input,.side button.sb{font:inherit;font-size:12px;border-radius:8px;border:1px solid #ffffff44;background:#ffffff1c;color:#fff;padding:6px 8px;cursor:pointer}
+.side .k{display:flex;justify-content:space-between;align-items:center;padding:5px 10px;border-radius:8px;border-left:4px solid var(--c);background:#ffffff14;cursor:pointer;font-size:12.5px;transition:.2s}
+.side .k:hover{background:#ffffff2e}.side .k b{font-size:16px}
+.main{flex:1;min-width:0;padding:14px 18px 40px}
+h2{margin:0 0 10px;font-size:17px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:0 2px 8px #0001;animation:fi .4s both}@keyframes fi{from{opacity:0;transform:translateY(8px)}}
+input,select,textarea,button{font:inherit}
+input[type=date],input[type=text],input[type=number],select,textarea{border-radius:8px;border:1px solid var(--bd);padding:6px 8px;background:var(--card);color:var(--tx)}
+.btn{background:#2b4a9a;color:#fff;border:0;border-radius:8px;padding:7px 14px;cursor:pointer}.btn.g{background:var(--bg);color:var(--tx);border:1px solid var(--bd)}
+.chip{border-radius:20px;padding:5px 13px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-size:13px;cursor:pointer}.chip.on{background:#2b4a9a;color:#fff;border-color:#2b4a9a}
+.mut{color:var(--mut);font-size:12px}.hide{display:none}
+.sh2{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px}
+.sc{border-left:5px solid var(--c);background:color-mix(in srgb,var(--c) 12%,var(--card));border-radius:10px;padding:8px 12px;cursor:pointer;transition:.2s}
+.sc:hover{transform:translateY(-3px);box-shadow:0 6px 16px #0003}.sc.dg{animation:pl 1.8s infinite}@keyframes pl{50%{box-shadow:0 0 0 5px #e5484d30}}
+.sc b{display:block}.sc span{display:block;font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sc em{font-style:normal;font-size:12.5px;font-weight:600;color:var(--c)}
+.bar2{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 8px;align-items:center}
+.gi{position:relative;border:1px solid var(--bd);border-radius:10px;background:var(--card)}
+.row{display:flex;height:40px;border-bottom:1px solid var(--bd)}.row:hover{background:color-mix(in srgb,var(--blue) 8%,transparent)}
+.lb{width:220px;flex:none;padding:3px 10px;border-right:1px solid var(--bd);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer;font-size:13px}
+.lb small{display:block;color:var(--mut);font-size:11px;overflow:hidden;text-overflow:ellipsis}
+.hd{position:sticky;top:0;z-index:8;background:var(--card);border-radius:10px 10px 0 0}.hd .row{height:24px}
+.dc{flex:none;text-align:center;font-size:11px;color:var(--mut);border-right:1px solid var(--bd);line-height:24px}
+.cv{position:relative;flex:none}
+.wk{position:absolute;top:0;bottom:0;background:var(--wk)}.wk.h{background:var(--hol)}
+.td{position:absolute;top:0;bottom:0;width:0;border-left:1.5px solid var(--red);z-index:4;pointer-events:none;transition:left .6s linear}.hd .td::before{content:"";position:absolute;top:-1px;left:-4px;width:7px;height:7px;border-radius:50%;background:var(--red)}.hd .row:first-child .td{display:none}
+.evr{display:flex;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--bd);border-radius:10px;margin-bottom:6px}.evr>div{flex:1;min-width:0}.evr input[type=color]{width:34px;height:30px;padding:0;border:0;background:none}
+.bar{position:absolute;top:9px;height:22px;line-height:22px;border-radius:6px;background:var(--c);color:#fff;font-size:11px;padding:0 6px;overflow:hidden;white-space:nowrap;cursor:pointer;z-index:2;transition:filter .15s,transform .15s}
+.bar:hover{filter:brightness(1.35);transform:scaleY(1.15);z-index:3}
+.bar.gh{background:transparent;border:2px dashed var(--ghost);z-index:1;top:7px;height:26px}
+.bar .pg{position:absolute;left:0;top:0;bottom:0;background:#0003}
+.bk .bar:not(.gh){background:#05070d;border-left:7px solid var(--c);box-shadow:0 0 0 1px #ffffff40,0 2px 6px #0007}.bk .bar .pg{background:var(--c);opacity:.55}
+.mo{font-weight:700;color:var(--tx);text-align:left;padding-left:4px;background:var(--wk)}.cur{background:var(--red);color:#fff!important}
+.sz{z-index:0}.shl{position:absolute;height:16px;line-height:16px;font-size:10.5px;color:#fff;padding:0 6px;border-radius:5px;overflow:hidden;white-space:nowrap;text-shadow:0 1px 2px #0007;font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:6px;border-bottom:1px solid var(--bd);text-align:left;vertical-align:top}th{color:var(--mut);font-weight:600}td input[type=text],td textarea{width:100%}
+.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:10px}.fg label{font-size:12px;color:var(--mut);display:block}.fg input,.fg textarea{width:100%}
+.zc{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--bd);border-radius:20px;padding:4px 6px 4px 8px;margin:0 6px 6px 0;font-size:12.5px}.zc input{width:26px;height:22px;padding:0;border:0;background:none}.zc button{border:0;background:none;color:var(--red);font-size:14px;cursor:pointer}
+.ov{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;z-index:50;padding:16px}.ov.on{display:flex}
+.dr{background:var(--card);border-radius:16px;max-width:560px;width:100%;max-height:92vh;overflow:auto;padding:18px}.dr pre{white-space:pre-wrap;font:inherit;background:var(--bg);padding:10px;border-radius:8px;color:var(--mut)}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.fr label{font-size:12px;color:var(--mut);display:block}.fr input,.fr select{width:100%}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:12px}
+.kpis .k{background:var(--card);border:1px solid var(--bd);border-top:4px solid var(--c);border-radius:12px;padding:8px 14px;cursor:pointer;box-shadow:0 2px 8px #0001;transition:.2s;animation:fi .4s both}
+.kpis .k:hover{transform:translateY(-3px);box-shadow:0 8px 18px #0003}.kpis .k b{display:block;font-size:26px;line-height:1.1}.kpis .k span{font-size:12px;color:var(--mut)}
+.badge{border-radius:12px;padding:1px 10px;font-size:11px;color:#fff;white-space:nowrap}
+#tip{position:fixed;z-index:60;width:310px;max-width:calc(100vw - 24px);background:var(--card);color:var(--tx);border:1px solid var(--bd);border-top:5px solid var(--c,#2b4a9a);border-radius:14px;box-shadow:0 14px 40px #0006;padding:12px 14px;pointer-events:none;opacity:0;transform:translateY(6px);transition:opacity .15s,transform .15s;left:0;top:0}#tip.on{opacity:1;transform:none}
+#tip .tr{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:2px 0}#tip .tr span{color:var(--mut)}#tip .tb{height:6px;background:var(--bd);border-radius:4px;overflow:hidden;margin:3px 0 6px}#tip .tb i{display:block;height:100%}
+#tip .tw{background:color-mix(in srgb,var(--ghost) 40%,transparent);border-radius:8px;padding:5px 8px;font-size:12px;margin:4px 0}#tip pre{white-space:pre-wrap;font:inherit;font-size:11.5px;color:var(--mut);background:var(--bg);padding:6px 8px;border-radius:8px;margin:6px 0}
+.lb{white-space:normal;display:flex;align-items:center;line-height:1.25;font-size:12.5px;cursor:default}.cv[data-ln]{cursor:cell}
+.stp{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.stb{border:2px solid var(--bd);background:var(--card);color:var(--tx);border-radius:12px;padding:8px 4px;cursor:pointer;font-size:12.5px;transition:.15s;display:flex;flex-direction:column;align-items:center;gap:2px}.stb span{font-size:18px}.stb:hover{transform:translateY(-2px);border-color:var(--c)}.stb.on{background:var(--c);border-color:var(--c);color:#fff;box-shadow:0 6px 16px color-mix(in srgb,var(--c) 45%,transparent)}
+.prg{height:8px;border-radius:5px;background:var(--bd);overflow:hidden;margin-top:10px}.prg div{height:100%;transition:width .4s}
+.qb{border:0;border-radius:8px;padding:3px 10px;font-size:11.5px;font-weight:700;cursor:pointer;background:#fff;color:#4c1d95;margin-top:5px;display:block}.qb:hover{filter:brightness(.92)}.qb.pu{animation:pl 1.6s infinite}
+.ac.os{background:linear-gradient(135deg,#166534,#14532d);box-shadow:0 0 0 1px #4ade8099}.ac.os .qb{color:#14532d}
+.ac{box-sizing:border-box;width:176px;height:82px;display:flex;flex-direction:column;justify-content:center}.ac b,.ac span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ac .qb{margin-top:auto;align-self:flex-start}.sc{min-height:78px}.sc .qb{background:var(--c);color:#fff}
+.cf{position:fixed;top:-24px;font-size:22px;z-index:90;pointer-events:none;animation:cfall 2s ease-in forwards}@keyframes cfall{to{transform:translateY(110vh) rotate(600deg);opacity:.5}}
+#toast.u{pointer-events:auto}#toast button{margin-left:10px;background:#fff;color:#111;border:0;border-radius:8px;padding:3px 10px;cursor:pointer;font-weight:600}
+.act{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px;padding:8px 12px;border:1.5px solid #7c3aed;border-radius:14px;background:color-mix(in srgb,#7c3aed 10%,var(--card))}
+.acl{font-weight:700;color:#7c3aed;margin-right:4px}.acl b{background:#7c3aed;color:#fff;border-radius:10px;padding:0 8px;margin-left:4px}
+.ac{position:relative;overflow:hidden;background:#7c3aed;color:#fff;border-radius:10px;padding:6px 14px 10px;cursor:pointer;min-width:130px;transition:.2s}.ac:hover{transform:translateY(-2px);filter:brightness(1.12)}.ac b{display:block}.ac span{font-size:11.5px;opacity:.92}.ac i{position:absolute;left:0;bottom:0;height:4px;background:#fde68a}
+#npw{position:fixed;top:12px;right:12px;z-index:65;display:flex;flex-direction:column;gap:8px;width:min(340px,calc(100vw - 24px))}
+.np{background:var(--card);border-left:6px solid var(--c);border-radius:12px;padding:10px 34px 10px 14px;box-shadow:0 10px 30px #0006;cursor:pointer;position:relative;animation:fi .3s both}.np b{display:block}.np span{display:block;color:var(--mut);font-size:12px}.np em{font-style:normal;font-weight:600;font-size:12.5px;color:var(--c)}.np button{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--mut);cursor:pointer;font-size:14px}
+.side .sb.onb{background:#22a06b66}
+.xg{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.xb{text-align:left;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:12px;padding:12px 14px;cursor:pointer;transition:.2s}.xb:hover{transform:translateY(-3px);box-shadow:0 8px 18px #0003}.xb b{display:block;font-size:15px}.xb span{font-size:12px;color:var(--mut)}
+.ro [data-q],.ro #sv0,.ro #addb,.ro #gnew,.ro #znew,.ro #tnew,.ro [data-te],.ro [data-del],.ro [data-tg],.ro [data-td],.ro [data-ge],.ro [data-gd],.ro [data-ze],.ro [data-zd],.ro .rsv,.ro #rst,.ro #xin{display:none!important}.ro #rtb input,.ro #rtb select{pointer-events:none;opacity:.6}
+@media print{.side,#show,#npw,#toast,.bar2,#more,.kpis,.act,.ov{display:none!important}.main{padding:0}.card{box-shadow:none;break-inside:avoid}@page{size:landscape;margin:8mm}}
+.mh{flex:none;height:28px;line-height:28px;font-weight:700;font-size:13.5px;padding:0 8px;border-left:2px solid #2b4a9a;background:color-mix(in srgb,#2b4a9a 18%,transparent);color:var(--tx);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.mh.o{background:color-mix(in srgb,#2b4a9a 8%,transparent)}.hd .row:first-child{height:28px}
+.bar.os:not(.gh),.bk .bar.os:not(.gh){background:linear-gradient(135deg,#166534,#14532d);box-shadow:0 0 0 1px #4ade8099,0 2px 8px #0008}
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:#1f2937;color:#fff;padding:10px 18px;border-radius:12px;opacity:0;transition:.25s;z-index:70;pointer-events:none;max-width:90vw;box-shadow:0 8px 24px #0006}#toast.on{opacity:1;transform:translate(-50%,0)}
+.dot{width:14px;height:14px;border-radius:50%;flex:none}
+.sec{font-size:12px;font-weight:600;color:var(--mut);margin:2px 2px 8px;display:flex;gap:8px;align-items:center}.sec::after{content:"";flex:1;height:1px;background:var(--bd)}.sec #rl{color:var(--tx)}
+.gi>.row:nth-of-type(even){background:color-mix(in srgb,var(--wk) 50%,transparent)}.gi>.row:hover{background:color-mix(in srgb,var(--blue) 12%,transparent)}.gi>.row:hover .lb{background:#2b4a9a;color:#fff}
+.ol{position:absolute;height:22px;line-height:22px;font-size:11px;font-weight:600;color:var(--tx);white-space:nowrap;z-index:2;pointer-events:none;background:color-mix(in srgb,var(--card) 82%,transparent);border-radius:4px;padding:0 4px}
+select.chip.on{background:#2b4a9a;color:#fff}
+.side{transition:width .25s,padding .25s}.app.col .side{width:0;padding:0;visibility:hidden}.app.col #show{display:block!important}.app.col .main{padding-top:56px}
+.tg{display:inline-block;border-radius:12px;padding:1px 9px;font-size:11px;color:#fff;margin:0 4px 3px 0;border:0}
+.tp{background:transparent;color:var(--tx);border:1.5px solid var(--c);cursor:pointer;font-size:12px;padding:3px 11px;margin-bottom:5px}.tp.on{background:var(--c);color:#fff}
+.tgd{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;box-shadow:0 0 0 1px #fff9}
+@media(max-width:820px){.app.col .side{display:none}.app{flex-direction:column}.side{position:static;width:auto;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center}.side h1{width:100%;margin:0}.sp,.side .k,.side .mt{display:none}.lb{width:120px}.main{padding:10px}}
+</style>
+</head>
+<body class="bk">
+<div class="app" id="app">
+<button class="chip" id="show" style="position:fixed;left:10px;top:10px;z-index:30;display:none;box-shadow:0 4px 14px #0004">☰ เมนู</button>
+<aside class="side">
+<button class="sb" id="hide" style="align-self:flex-end;padding:3px 10px">« พับเมนู</button>
+<h1>🛠️ PM Shutdown Monitor<small>พ.ย. 2026 – ม.ค. 2027 · Draft 1</small></h1>
+<button class="nv on" data-p="g">📊 Timeline</button>
+<button class="nv" data-p="e">📝 ลงแผน / แก้ไข</button>
+<button class="nv" data-p="r">🔄 ปรับแผน</button>
+<button class="nv" data-p="v">🎉 อีเว้น & กลุ่มไลน์</button>
+<button class="nv" data-p="x">📤 ส่งออก & แชร์</button>
+<div class="sp"></div>
+<label>จำลองวันที่<br><input type="date" id="sim" style="width:100%"></label>
+<div class="mt" id="syn"></div><button class="sb" id="ntf">🔕 แจ้งเตือน: ปิด</button><button class="sb" id="th">🌓 ธีม</button>
+</aside>
+<div class="main">
+<section class="pg" id="p-g">
+<div class="sec">📌 สรุปสถานะงาน PM <span style="font-weight:400">· กดการ์ดเพื่อกรอง Timeline</span></div>
+<div class="kpis" id="kpis"></div>
+<div id="act"></div>
+<div class="card">
+<div class="sh2"><h2 style="margin:0">🚨 Line ที่กำลังจะเข้า PM</h2><span class="mut" id="stc"></span><span class="mut">แจ้งล่วงหน้า <select id="lead"><option>7</option><option selected>14</option><option>30</option><option>60</option></select> วัน</span></div>
+<div class="strip" id="strip"></div></div>
+<div class="sec">📊 Timeline แผน PM แยกตามไลน์ <span id="rl" style="font-weight:400"></span></div>
+<div class="bar2" style="margin-top:0"><button class="chip" id="prev" title="ก่อนหน้า">◀</button><button class="chip" id="tod">วันนี้</button><button class="chip" id="next" title="ถัดไป">▶</button><span id="rk" style="display:inline-flex;gap:6px;flex-wrap:wrap;align-items:center"></span><button class="chip" id="mre">⚙️ เพิ่มเติม ▾</button></div>
+<div id="more" class="hide"><div class="bar2" style="margin-top:0"><span id="rk2" style="display:inline-flex;gap:6px"></span><span id="cr" style="display:none;gap:6px;align-items:center"><input type="date" id="rf"> – <input type="date" id="rt"></span><button class="chip on" id="bm">⬛ แท่งสีดำ</button><label class="mut">ป้ายวันที่ <select id="lbm"><option value="auto">อัตโนมัติ</option><option value="1">ทุกวัน</option><option value="2">ทุก 2 วัน</option><option value="3">ทุก 3 วัน</option><option value="5">ทุก 5 วัน</option><option value="7">ทุกสัปดาห์ (จันทร์)</option><option value="10">ทุก 10 วัน (1·11·21)</option><option value="15">ครึ่งเดือน (1·15)</option><option value="0">รายเดือน</option></select></label><input type="text" id="q" placeholder="ค้นหางาน…"><select id="gsel"><option value="">ทุกกลุ่มไลน์</option></select><select id="tsel"><option value="">ทุกประเภท</option><option>PM</option><option>Other stop</option></select></div><div class="bar2" style="margin-top:0"><span id="fs"></span></div></div>
+<div class="gi" id="gantt"></div>
+<p class="mut">ประเภท: <b>■ PM</b> (ดำ) <b style="color:#166534">■ Other stop</b> (เขียวเข้ม) · แถบสีซ้ายของแท่ง = สถานะ: <span style="color:var(--blue)">■</span> Planned <span style="color:var(--amber)">■</span> In Progress <span style="color:var(--green)">■</span> Done <span style="color:var(--grey)">■</span> Cancelled · เส้นประส้ม = แผนเดิมก่อนเลื่อน · แถบแดง = วันนี้ · ความกว้างแท่ง = ช่วงเวลา PM ตามชั่วโมงที่ลงแผน · ความคืบหน้า = เวลาที่ผ่านไปเทียบกับระยะเวลาที่ลงแผน · คลิกแท่งงานเพื่อปรับแผน · ดับเบิลคลิกพื้นที่ว่างในไลน์เพื่อลงแผนใหม่</p>
+</section>
+<section class="pg hide" id="p-e"><div class="sh2"><h2 style="margin:0">📝 ลงแผน / แก้ไข</h2><button class="btn" id="addb">➕ ลงแผน</button></div>
+<div class="card"><h2>รายการแผนที่ลงไว้ <span class="mut">กด ✎ เพื่อแก้ไข · ถ้าแผนเปลี่ยนระหว่างเดือนให้ไปหน้า “ปรับแผน”</span></h2>
+<table><thead><tr><th>ID</th><th>Line</th><th>งาน / Tag</th><th>ประเภท</th><th>เริ่ม → สิ้นสุด</th><th>ชม.</th><th></th></tr></thead><tbody id="etb"></tbody></table></div><div class="card"><div class="sh2"><h2 style="margin:0">🏷️ ตัวเลือก Tag <span class="mut">สร้างไว้ใช้ซ้ำตอนลงแผน</span></h2><button class="btn" id="tnew">➕ สร้าง Tag</button></div><div id="tlist"></div></div></section>
+<section class="pg hide" id="p-r"><div class="card"><h2>🔄 ปรับแผนระหว่างเดือน <span class="mut">แก้วันที่/สถานะ/% แล้วกดบันทึก ระบบเก็บประวัติให้อัตโนมัติ</span></h2>
+<table><thead><tr><th>งาน</th><th>ชื่อ</th><th>แผนเดิม</th><th>Start – End ปัจจุบัน</th><th>สถานะ</th><th>คืบหน้า (ตามเวลา)</th><th>เหตุผล</th><th></th></tr></thead><tbody id="rtb"></tbody></table></div>
+<div class="card"><h2>ประวัติการเปลี่ยนแผน <button class="btn g" id="rst">ล้างข้อมูลที่แก้ทั้งหมด</button></h2><div id="log"></div></div></section>
+<section class="pg hide" id="p-v">
+<div class="card"><div class="sh2"><h2 style="margin:0">🗂️ กลุ่มไลน์</h2><button class="btn" id="gnew">➕ สร้างกลุ่ม</button></div><div id="glist"></div></div>
+<div class="card"><div class="sh2"><h2 style="margin:0">🎉 อีเว้น / ช่วงแรเงา</h2><button class="btn" id="znew">➕ เพิ่มอีเว้น</button></div><div id="zlist"></div>
+<p class="mut">วันหยุดนักขัตฤกษ์ (แรเงาเหลืองอัตโนมัติ): 5 ธ.ค. · 10 ธ.ค. · 31 ธ.ค. · 1 ม.ค.</p></div></section>
+<section class="pg hide" id="p-x">
+<div class="card"><h2>📑 หน้าสรุป (Excel เหมือนรูปอ้างอิง)</h2>
+<p class="mut" style="font-size:13px;line-height:1.6">ไฟล์ .xlsx ชีตแรกเป็นตาราง Timeline แบบเดียวกับภาพอ้างอิง: หัวเดือน/วัน, วันหยุด, แท่งดำ (Other stop = เขียวเข้ม), แรเงาอีเว้นตามไลน์ที่กระทบ, เส้นลายแผนเดิม, คอลัมน์ Remark · ชีตอื่น: รายละเอียดงาน, แผน PM, ประวัติเปลี่ยนแผน, อีเว้น, กลุ่มไลน์</p>
+<div class="bar2" style="margin-top:0">ช่วงวันที่ <input type="date" id="xf"> – <input type="date" id="xt"><span class="mut">Draft: <b id="xdr"></b> · Remark <b id="xrm"></b> ไลน์</span><button class="chip" id="xrmb">✎ Draft / Remark ต่อไลน์</button></div>
+<button class="btn" id="xxl" style="margin-top:6px">⬇ ส่งออกหน้าสรุป (.xlsx)</button></div>
+<div class="card"><h2>🔔 แจ้งเตือนบนคอม แม้ไม่ได้เปิดเว็บ</h2>
+<p class="mut" style="font-size:13px;line-height:1.7">หน้าเว็บส่งแจ้งเตือนเข้าเครื่องตอนที่ปิดหน้าไปแล้วไม่ได้ (ข้อจำกัดของเบราว์เซอร์) ทางที่ได้ผลจริงคือนำแผนเข้า <b>ปฏิทิน</b> (Outlook / Google Calendar) ซึ่งเตือนบนคอมและมือถือเองแม้ปิดเว็บ<br>ไฟล์นี้สร้างนัดให้ทุก PM: <b>เตือนล่วงหน้า 7 วัน · 1 วัน · ตอนเริ่ม PM · วันสุดท้าย</b> (เวลาเตือนตามค่าเริ่มต้นของปฏิทินคุณ)<br><b>Google Calendar:</b> ตั้งค่า ⚙️ → นำเข้าและส่งออก → นำเข้า → เลือกไฟล์ CSV<br><b>Outlook:</b> ไฟล์ → เปิดและส่งออก → นำเข้า/ส่งออก → นำเข้าจากโปรแกรมหรือไฟล์อื่น → Comma Separated Values</p>
+<button class="btn" id="xcal">📅 ส่งออกปฏิทินแจ้งเตือน (CSV)</button></div>
+<div class="card"><h2>📤 ส่งออกอื่นๆ</h2><div class="xg">
+<button class="xb" id="xcsv"><b>📄 CSV</b><span>ตารางแผนอย่างเดียว เปิดใน Excel ได้</span></button>
+<button class="xb" id="xjs"><b>💾 สำรองข้อมูล (JSON)</b><span>ไฟล์สำรองทุกอย่าง ใช้นำเข้ากลับได้</span></button>
+<button class="xb" id="xpr"><b>🖨️ พิมพ์ / บันทึก PDF</b><span>พิมพ์หน้า Timeline (เลือก Save as PDF ในหน้าพิมพ์)</span></button></div>
+<h2 style="margin:16px 0 8px">📥 นำเข้า</h2><div class="bar2" style="margin-top:0"><input type="file" id="xin" accept=".json,application/json"><span class="mut">นำเข้าไฟล์สำรอง (JSON) – จะแทนที่ข้อมูลปัจจุบัน</span></div></div>
+<div class="card"><h2>🔗 การแชร์</h2><p class="mut" style="font-size:13px;line-height:1.7">ข้อมูลที่ลงไว้ (แผน, ปรับแผน, อีเว้น, กลุ่มไลน์, Tag, Remark) เก็บบนคลาวด์ร่วมกัน ทุกคนที่เปิดลิงก์นี้ผ่าน claude.ai (ล็อกอินอยู่) จะเห็นข้อมูลชุดเดียวกัน และอัปเดตอัตโนมัติ<br>วิธีแชร์: กดปุ่ม <b>Share</b> ของหน้านี้ใน claude.ai แล้วเลือกสิทธิ์ — Contributor ขึ้นไปแก้ไขได้ ส่วน Viewer ดูอย่างเดียว<br>สถานะตอนนี้: <b id="syn2"></b></p></div></section>
+</div></div>
+<div id="npw"></div>
+<div class="ov" id="ov"><div class="dr" id="dr"></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script>
+const T=[
+["PM-001","CDCM","CDCM Shutdown – TR converter & No.1 TR inverter","a1 TR converter / No.1 TR inverter renewal 384 hrs\nac PL tank inspection 120 · ad IMR-Shift std.1 120 · ae Dam roll 72 · af O/H motor 168\n[ยกเลิก] ak Welder flashing controller","2026-12-13","2026-12-28",384],
+["PM-002","CAPL","CAPL Shutdown – furnace rolls / DCS Step 4-2","Check and change furnace rolls, radiant tubes, instrument valve 139 hrs\nb1 Instrument DCS Step 4-2 (432 hrs)","2026-12-20","2027-01-06",432],
+["PM-003","1RCL","1RCL – Overhaul motor","qd Overhaul motor","2026-12-21","2026-12-25",120],
+["PM-004","CAL","CAL – Common converter / furnace inspection","d3 Common converter for utility renewal 168 hrs (test run 25 Dec)\nda Inspection furnace rolls & radiant tubes 96 · qd O/H motor 120\n[ยกเลิก] d4 No.2 Tension reel bore bearing housing","2026-12-19","2026-12-25",168],
+["PM-005","TPM","TPM – Overhaul motor","qc Overhaul motor 120 hrs\n[ยกเลิก] e4 Housing of mill blower replacement 168 hrs","2026-12-16","2026-12-20",120],
+["PM-006","#2CPL","#2CPL – Overhaul motor","qd Overhaul motor","2026-12-23","2026-12-27",120],
+["PM-007","#1CPL","#1CPL – Overhaul POR & TR / motor","qa O/H POR & TR 15 hrs · qc O/H motor 96 hrs","2026-12-21","2026-12-24",96],
+["PM-008","RS and SB","RS – RG2 control and drive renewal","i1 RG2 control and drive renewal (30/11–25/12, 600 hrs)","2026-11-30","2026-12-24",600],
+["PM-009","Acid Regeneration Plant (ARP)","ARP – media replacement / chemical cleaning / roaster","jb Media TW2 & TW3, chemical cleaning PU-2/PU-3\njc Roaster inspection & repair 288 hrs\nj3 Waste acid pit inspection 138 hrs","2026-12-16","2026-12-27",288],
+["PM-010","Water Treatment 1 (WT1)","WT1 – Cleaning waste water treatment tank","Confirm scope of work with UT","2026-12-19","2026-12-25",168],
+["PM-011","1 Packing Line","1 Packing Line – งานสั้น 8 hrs","(09:00-17:00) ยังไม่ระบุรายละเอียด","2026-12-30","2026-12-30",8],
+["PM-012","CGL","CGL – No.4 Furnace CPC renewal","r1 No.4 Furnace CPC renewal 87 hrs (04:00-17:00)","2026-12-14","2026-12-17",87],
+["PM-013","2RCL","2RCL – O/H TR","O/H TR 15 hrs (08:00-08:00)","2026-12-15","2026-12-16",24],
+["PM-014","2 Packing Line","2 Packing Line – งานสั้น 6 hrs","(09:00-15:00) ยังไม่ระบุรายละเอียด","2026-12-17","2026-12-17",6],
+["PM-015","Crane2 / UT System","UT – Air Compressor No.6 / Air Dryer No.6","(09:00-12:00) 3 hrs","2026-12-14","2026-12-14",3],
+["PM-016","1EPL","1EPL – #2 Shutdown (EPL up capacity)","V3 MCC1 renewal · V4 1EPC/2EPC renewal · V5 Pinhole detector renewal (Jan'27)","2026-12-20","2027-01-16",648],
+["PM-017","2EPL","2EPL – #2 Shutdown (EPL up capacity)","wa Replace anode M/C-plate, Chrome plate tanks, O/H POR, TR, welder 120 hrs","2026-12-20","2027-01-24",840],
+["PM-018","Shearing Line (SHL1-4) / Crane3 / UT system","Crane3 – #2 shutdown (ABUS / #3SHL crane)","n2 ABUS crane inverter 120 hrs · n4 Motor long travel 72 hrs · n5 Move & install no.6 crane to #3SHL 648 hrs","2026-12-20","2027-01-16",648]];
+const HOL={"2026-12-05":"วันพ่อ / วันชาติ","2026-12-10":"วันรัฐธรรมนูญ","2026-12-31":"วันสิ้นปี","2027-01-01":"วันขึ้นปีใหม่"};
+const ST={"Planned":"var(--blue)","In Progress":"var(--amber)","Done":"var(--green)","Cancelled":"var(--grey)"};
+const MF=["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+const MN=["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
+const LC=["var(--red)","var(--amber)","var(--blue)"],LI=["🔴","🟠","🔵"],LBW=220;
+const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s),D=s=>{const[a,b,c]=s.split("-").map(Number);return Date.UTC(a,b-1,c)},DAY=864e5;
+const iso=t=>new Date(t).toISOString().slice(0,10),fm=s=>{const d=new Date(D(s));return d.getUTCDate()+" "+MN[d.getUTCMonth()]};
+const df=(a,b)=>Math.round((D(a)-D(b))/DAY),add=(s,n)=>iso(D(s)+n*DAY);
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+const tm=s=>{const m=/^(\d+):(\d+)/.exec(s||"");return m?+m[1]+ +m[2]/60:0},eh=s=>{if(!s)return 24;const v=tm(s);return v>=23.98?24:v},fh=v=>{const h=Math.floor(v),m=Math.round((v-h)*60);return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")};
+const trg=t=>fh(t.hs)+"–"+fh(t.he),dlab=t=>{const H=df(t.b,t.a)*24+t.he-t.hs;return H<24?(Math.round(H*10)/10)+" ชม.":(Math.round(H/24*10)/10)+" วัน"};
+const TG={"PM-001":["Renewal","Inspection","Overhaul (O/H)"],"PM-002":["Inspection","Renewal"],"PM-003":["Overhaul (O/H)"],"PM-004":["Renewal","Inspection","Overhaul (O/H)"],"PM-005":["Overhaul (O/H)"],"PM-006":["Overhaul (O/H)"],"PM-007":["Overhaul (O/H)"],"PM-008":["Renewal"],"PM-009":["Replacement","Cleaning","Inspection","Repair"],"PM-010":["Cleaning"],"PM-012":["Renewal"],"PM-013":["Overhaul (O/H)"],"PM-015":["Inspection"],"PM-016":["Renewal"],"PM-017":["Replacement","Inspection","Overhaul (O/H)"],"PM-018":["Installation","Repair"]};
+const TT={"PM-011":["09:00","17:00"],"PM-012":["04:00","17:00"],"PM-013":["08:00","08:00"],"PM-014":["09:00","15:00"],"PM-015":["09:00","12:00"],"PM-016":["06:00","06:00"],"PM-017":["06:00","06:00"],"PM-018":["06:00","06:00"]};
+const DTG=()=>[{n:"Overhaul (O/H)",c:"#ef4444"},{n:"Inspection",c:"#0ea5e9"},{n:"Renewal",c:"#8b5cf6"},{n:"Replacement",c:"#f59e0b"},{n:"Cleaning",c:"#14b8a6"},{n:"Repair",c:"#ec4899"},{n:"Installation",c:"#22c55e"}];
+const LINES=["CDCM","CAPL","1RCL","CAL","TPM","#2CPL","#1CPL","RS and SB","Acid Regeneration Plant (ARP)","Water Treatment 1 (WT1)","1 Packing Line","CGL","2RCL","2 Packing Line","Crane2 / UT System","1EPL","2EPL","Shearing Line (SHL1-4) / Crane3 / UT system"];
+const SN={"Acid Regeneration Plant (ARP)":"ARP","Water Treatment 1 (WT1)":"WT1","Crane2 / UT System":"Crane2/UT","Shearing Line (SHL1-4) / Crane3 / UT system":"SHL/Crane3","1 Packing Line":"1 Pack","2 Packing Line":"2 Pack"};
+const LM={"ARP":LINES[8],"WT1":LINES[9],"Crane2 / UT":LINES[14],"Shearing / Crane3":LINES[17]},DN=["อา","จ","อ","พ","พฤ","ศ","ส"];
+const DSH=()=>[{l:"Shutdown หลัก 19–25 ธ.ค.",a:"2026-12-19",b:"2026-12-25",c:"#00bcd4",ln:[]},{l:"EPL up capacity #2 shutdown",a:"2026-12-20",b:"2027-01-24",c:"#22c55e",ln:[LINES[15],LINES[16],LINES[17]]}];
+const DGP=()=>[{n:"EPL",c:"#22c55e",lines:[LINES[15],LINES[16]]},{n:"Packing",c:"#f97316",lines:[LINES[10],LINES[13]]},{n:"Utility & Crane",c:"#0ea5e9",lines:[LINES[9],LINES[14],LINES[17]]}];
+const HADLOCAL=(()=>{try{return !!localStorage.getItem("pmmon1")}catch(e){return false}})();
+let S={ov:{},log:[],sh:null,tasks:null};try{Object.assign(S,JSON.parse(localStorage.getItem("pmmon1"))||{})}catch(e){}
+S.sh=S.sh||DSH();S.rm=S.rm||{};S.draft=S.draft||"";S.groups=S.groups||DGP();S.sh.forEach(z=>{if(!z.ln)z.ln=/EPL up capacity/.test(z.l)?[LINES[15],LINES[16],LINES[17]]:[]});S.tags=S.tags||DTG();S.tasks=S.tasks||T.map(r=>r.slice());S.tasks.forEach(r=>{r[1]=LM[r[1]]||r[1];if(!r[7])r[7]=TG[r[0]]||[];if(!r[8]){const z=TT[r[0]]||["00:00","23:59"];r[8]=z[0];r[9]=z[1]}if(!r[10])r[10]="PM"});
+let DOC=null,canW=true,lastJ="",wt=null;
+const SH=()=>JSON.stringify({ov:S.ov,log:S.log,sh:S.sh,tasks:S.tasks,tags:S.tags,groups:S.groups,rm:S.rm,draft:S.draft});
+const setSyn=t=>{["syn","syn2"].forEach(i=>{const e=document.getElementById(i);if(e)e.textContent=t})};
+function norm(){S.ov=S.ov||{};S.log=S.log||[];S.sh=S.sh||DSH();S.rm=S.rm||{};S.draft=S.draft||"";S.groups=S.groups||DGP();S.tags=S.tags||DTG();S.tasks=S.tasks||T.map(r=>r.slice());
+S.sh.forEach(z=>{if(!z.ln)z.ln=[]});S.tasks.forEach(r=>{r[1]=LM[r[1]]||r[1];if(!r[7])r[7]=TG[r[0]]||[];if(!r[8]){const z=TT[r[0]]||["00:00","23:59"];r[8]=z[0];r[9]=z[1]}if(!r[10])r[10]="PM"})}
+function push(){if(!DOC)return;clearTimeout(wt);setSyn("⏳ กำลังบันทึก…");wt=setTimeout(async()=>{const j=SH();if(j===lastJ){setSyn("☁️ บันทึกแล้ว (ทุกคนเห็นตรงกัน)");return}const prev=lastJ;lastJ=j;try{await DOC.set({j,t:Date.now()});setSyn("☁️ บันทึกแล้ว (ทุกคนเห็นตรงกัน)")}catch(e){lastJ=prev;setSyn("⚠ บันทึกขึ้นคลาวด์ไม่สำเร็จ")}},700)}
+const save=()=>{if(!canW){toast("โหมดดูอย่างเดียว – บันทึกไม่ได้");try{Object.assign(S,JSON.parse(lastJ));norm()}catch(e){}return}
+try{localStorage.setItem("pmmon1",JSON.stringify(S))}catch(e){}push()};
+let sim="",ws,we,rng="mx",mN=3,lbm="auto",fgrp="",fty="",NDAY=42,CW=20,filt="",fst="",lead=14,more=false;
+const today=()=>sim||iso(Date.now()-new Date().getTimezoneOffset()*6e4);
+const nowF=()=>{const n=new Date();return D(today())/DAY+(sim?.5:(n.getHours()*60+n.getMinutes())/1440)};
+const E=r=>{const o=S.ov[r[0]]||{},a=o.a||r[4],b=o.b||r[5],st=o.s||"Planned",hs=tm(r[8]),he=eh(r[9]),sa=D(a)/DAY+hs/24,sb=D(b)/DAY+he/24;
+const p=st=="Done"?100:st=="Cancelled"?0:Math.max(0,Math.min(100,Math.round((nowF()-sa)/Math.max(sb-sa,1e-6)*100)));
+return{id:r[0],ln:r[1],t:r[2],d:r[3],a0:r[4],b0:r[5],h:r[6],a,b,st,p,tg:r[7]||[],ts:r[8]||"00:00",te:r[9]||"23:59",ty:r[10]||"PM",hs,he}};
+const tagC=n=>(S.tags.find(x=>x.n==n)||{c:"#888"}).c,chips=ns=>ns.map(n=>`<span class="tg" style="background:${tagC(n)}">${esc(n)}</span>`).join("");
+const EA=()=>S.tasks.map(E),nm=t=>t.t.split("–")[1]||t.t;
+function alerts(){const td=today(),out=[];
+EA().forEach(t=>{if(t.st=="Done"||t.st=="Cancelled"||!t.a||t.ty=="Other stop")return;const s=df(t.a,td),e=df(t.b,td);
+if(e<0)out.push([0,t,"เลยกำหนด "+(-e)+" วัน ยังไม่ปิดงาน"]);
+else if(s<=0&&t.st=="Planned")out.push([0,t,"ถึงวันเริ่มแล้ว ("+fm(t.a)+") แต่ยังเป็น Planned"]);
+else if(t.st=="In Progress")out.push([e<=2?1:2,t,"กำลัง PM · เหลือ "+(e+1)+" วัน ("+t.p+"%)"]);
+else if(s>0&&s<=7)out.push([1,t,"เข้า PM ในอีก "+s+" วัน ("+fm(t.a)+") – ยืนยันวัสดุ/ทีมงาน"]);
+else if(s>7&&s<=lead)out.push([2,t,"เตรียมการ: เข้า PM ในอีก "+s+" วัน ("+fm(t.a)+")"]);
+else if(t.a!=t.a0||t.b!=t.b0)out.push([2,t,"แผนถูกเปลี่ยน (เดิม "+fm(t.a0)+"–"+fm(t.b0)+")"])});
+return out.sort((x,y)=>x[0]-y[0]||D(x[1].a)-D(y[1].a))}
+function strip(){const al=alerts().filter(x=>!isAct(x[1])),td=today(),n=al.filter(x=>x[0]<2).length,show=more?al:al.slice(0,8);
+$("#stc").textContent=al.length?al.length+" รายการ"+(n?" · ด่วน "+n:""):"";
+let h=show.map(x=>`<div class="sc ${x[0]==0?"dg":""}" style="--c:${LC[x[0]]}" data-id="${x[1].id}"><b>${LI[x[0]]} ${esc(x[1].ln)}</b><span>${esc(nm(x[1]))}</span><em>${x[2]}</em>${df(x[1].b,td)<0?`<button class="qb" data-q="done" data-qid="${x[1].id}">✔ ปิดงาน</button>`:""}</div>`).join("");
+if(al.length>8)h+=`<button class="chip" id="mr">${more?"ย่อ":"ดูทั้งหมด ("+al.length+")"}</button>`;
+if(!al.length){const nx=EA().filter(t=>t.st=="Planned"&&t.ty!="Other stop"&&df(t.a,td)>0).sort((a,b)=>D(a.a)-D(b.a))[0];h=`<div class="mut" style="padding:8px">✅ ไม่มี Line เข้า PM ภายใน ${lead} วัน${nx?" · ถัดไป: <b>"+esc(nx.ln)+"</b> อีก "+df(nx.a,td)+" วัน ("+fm(nx.a)+")":""}</div>`}
+$("#strip").innerHTML=h;document.title=(n?"("+n+") ":"")+"PM Shutdown Monitor";upN();chk()}
+function kp(){const all=EA(),c=k=>all.filter(t=>t.st==k).length;
+$("#kpis").innerHTML=[["ทั้งหมด",all.length,"#6b7cff",""],["Planned",c("Planned"),"var(--blue)","Planned"],["In Progress",c("In Progress"),"var(--amber)","In Progress"],["กำลังทำอยู่",all.filter(isAct).length,"#7c3aed","act"],["Done",c("Done"),"var(--green)","Done"],["Cancelled",c("Cancelled"),"var(--grey)","Cancelled"],["แผนเปลี่ยน",all.filter(t=>t.a!=t.a0||t.b!=t.b0).length,"#ed7d31",""]].map(k=>`<div class="k" style="--c:${k[2]}" data-s="${k[3]}"><span>${k[0]}</span><b>${k[1]}</b></div>`).join("")}
+function gantt(){const td=today(),all=EA().filter(t=>t.a&&(!fst||(fst=="act"?isAct(t):t.st==fst))&&(!fty||t.ty==fty)&&(t.ln+t.t).toLowerCase().includes(filt)),av=Math.max(300,($("#gantt").parentElement.clientWidth||900)-LBW-4),nd=Math.min(400,Math.max(1,df(we,ws)+1));
+CW=Math.max(3,Math.floor(av/nd));const W=nd*CW;let mo="",mk=[],dh="",bg="",sbz=[],shl="",shc="";
+$("#rl").textContent="· "+fm(ws)+" – "+fm(we)+" "+new Date(D(we)).getUTCFullYear()+" ("+nd+" วัน) · แสดง "+all.length+" งาน";upM();
+S.sh.forEach((z,i)=>{const l=df(z.a,ws)*CW,r=(df(z.b,ws)+1)*CW;if(r<=0||l>=W)return;const L=Math.max(0,l),w=Math.min(W,r)-L;sbz.push([z.ln||[],`<div class="wk sz" title="${esc(z.l)}${scTxt(z)}" style="left:${L}px;width:${w}px;background:color-mix(in srgb,${z.c} 26%,transparent);border-left:2px solid ${z.c};border-right:2px solid ${z.c}"></div>`]);shl+=`<div class="shl" style="top:${i*18+1}px;left:${L}px;width:${w}px;background:${z.c}" title="${esc(z.l)}${scTxt(z)}">${esc(z.l)}</div>`;shc+=`<div class="shl" style="top:1px;height:5px;padding:0;left:${L}px;width:${w}px;background:${z.c}" title="${esc(z.l)}"></div>`});
+const st=lbm=="auto"?([1,2,3,5,7,10,15].find(v=>v>=Math.ceil(26/CW))||0):+lbm;
+for(let i=0;i<nd;i++){const s=add(ws,i),d=new Date(D(s)),w=d.getUTCDay(),dd=d.getUTCDate(),h=HOL[s];
+if(w==0||w==6||h)bg+=`<div class="wk ${h?"h":""}" title="${h||""}" style="left:${i*CW}px;width:${CW}px"></div>`;
+let lab="";if(st==1)lab=CW>=36?DN[w]+" "+dd:dd;else if(st==2)lab=dd%2==1?dd:"";else if(st==3)lab=dd%3==1?dd:"";else if(st==5)lab=dd%5==1?dd:"";else if(st==7)lab=w==1?dd:"";else if(st==10)lab=[1,11,21].includes(dd)?dd:"";else if(st==15)lab=(dd==1||dd==15)?dd:"";else lab=dd==1?dd:"";if(s==td)lab=dd;
+mk.push(d.getUTCFullYear()*12+d.getUTCMonth());
+dh+=`<div class="dc ${s==td?"cur":""}" style="width:${CW}px;overflow:${st!=1||CW>=16?"visible":"hidden"};white-space:nowrap" title="${dd} ${MN[d.getUTCMonth()]}${h?" · "+h:""}">${lab}</div>`}
+{let i0=0;for(let i=1;i<=nd;i++){if(i==nd||mk[i]!=mk[i0]){const n=i-i0,d0=new Date(D(add(ws,i0))),w=n*CW,mm=d0.getUTCMonth(),yy=d0.getUTCFullYear();mo+=`<div class="mh ${mk[i0]%2?"o":""}" style="width:${w}px" title="${MF[mm]} ${yy}">${w>=120?MF[mm]+" "+yy:w>=64?MN[mm]+" "+yy:w>=30?MN[mm]:""}</div>`;i0=i}}}
+const xf=nowF()-D(ws)/DAY,line=xf>=0&&xf<nd?`<div class="td" style="left:${xf*CW}px" title="ตอนนี้ ${fh((nowF()%1)*24)}"></div>`:"";
+const lines=[...LINES,...[...new Set(EA().map(t=>t.ln))].filter(l=>!LINES.includes(l))];
+const gs=S.groups.find(g=>g.n==fgrp),rows=lines.filter(l=>!gs||gs.lines.includes(l)).map(L0=>{const ts=all.filter(t=>t.ln==L0).sort((a,b)=>D(a.a)-D(b.a)),ends=[],lane={};
+ts.forEach(t=>{let k=0;while(ends[k]!=null&&ends[k]>=D(t.a))k++;ends[k]=D(t.b);lane[t.id]=k});
+const H=Math.max(40,12+Math.max(1,ends.length)*26);
+const bar=(t,a,b,cls,full)=>{const l=(df(a,ws)+t.hs/24)*CW,r=(df(b,ws)+t.he/24)*CW;if(r<=0||l>=W)return"";const L=Math.max(0,l),R=Math.min(W,Math.max(r,L+6)),k=lane[t.id],w=R-L;let txt="",fs=11,ol="";
+if(full){const dy=dlab(t),dsh=dy.replace(" วัน","ว").replace(" ชม.","ช."),part=(t.hs>0||t.he<24)?" · "+trg(t):"",dots=w>=90?t.tg.map(n=>`<i class="tgd" style="background:${tagC(n)}"></i>`).join(""):"";
+const sl=esc(SN[t.ln]||t.ln),tyl=t.ty=="Other stop"?"⏸ ":"";
+if(w>=280){txt=dots+tyl+"<b>"+sl+"</b> · "+esc(nm(t))+" · "+dy+part+" · "+t.h+" ชม.";fs=12}else if(w>=170){txt=dots+tyl+"<b>"+sl+"</b> · "+dy+part;fs=11.5}else if(w>=100)txt="<b>"+sl+"</b> · "+dy;else if(w>=56){txt="<b>"+sl+"</b>";fs=10.5}else if(w>=34){txt=dsh;fs=10}else if(w>=18){txt=parseFloat(dy);fs=9}
+if(w<56){const est=(SN[t.ln]||t.ln).length*6.5+10,tp=7+k*26;ol=R+est+4<=W?`<span class="ol" style="top:${tp}px;left:${R+3}px">${sl}</span>`:L-est-4>=0?`<span class="ol" style="top:${tp}px;left:${L-est-3}px;text-align:right;width:${est}px">${sl}</span>`:""}}
+return`<div class="bar ${cls}${t.ty=="Other stop"?" os":""}" data-id="${t.id}" style="top:${(cls=="gh"?4:7)+k*26}px;left:${L}px;width:${w}px;--c:${ST[t.st]};font-size:${fs}px;padding:0 ${w<40?2:6}px">${full?`<div class="pg" style="width:${t.p}%"></div><span style="position:relative;display:block;overflow:hidden;text-overflow:ellipsis">${txt}</span>`:""}</div>${ol}`};
+const bs=ts.map(t=>((t.a!=t.a0||t.b!=t.b0)?bar(t,t.a0,t.b0,"gh",0):"")+bar(t,t.a,t.b,"",1)).join("");
+return`<div class="row" style="height:${H}px"><div class="lb" style="border-left:5px solid ${gcol(L0)}" title="${esc(S.groups.filter(g=>g.lines.includes(L0)).map(g=>g.n).join(", "))}"><b>${esc(L0)}</b></div><div class="cv" data-ln="${esc(L0)}" style="width:${W}px">${bg}${sbz.filter(x=>!x[0].length||x[0].includes(L0)).map(x=>x[1]).join("")}${bs}${line}</div></div>`}).join("");
+$("#gantt").innerHTML=`<div class="hd"><div class="row"><div class="lb"><b>Line</b></div><div class="cv" style="display:flex;width:${W}px">${mo}</div></div><div class="row"><div class="lb"></div><div class="cv" style="display:flex;width:${W}px">${dh}${line}</div></div><div class="row" style="height:${S.evc?(S.sh.length?9:2):S.sh.length*18+2}px;overflow:hidden"><div class="lb"><button class="chip" id="evt" style="padding:1px 9px;font-size:11px">${S.evc?"▸":"▾"} อีเว้น (${S.sh.length})</button></div><div class="cv" style="width:${W}px">${S.evc?shc:shl}</div></div></div>${rows}`}
+const rg=()=>{kp();act();strip();gantt()};
+function rr(){const o=Object.keys(ST);$("#rtb").innerHTML=EA().map(t=>`<tr data-t="${t.id}"><td><b>${t.id}</b><br>${esc(t.ln)}</td><td>${esc(nm(t))}<div>${chips(t.tg)}</div></td><td class="mut">${fm(t.a0)}–${fm(t.b0)}${t.a!=t.a0||t.b!=t.b0?"<br>⚠ เปลี่ยนแล้ว":""}</td><td style="white-space:nowrap"><input type="date" class="ra" value="${t.a}"> <input type="date" class="rb" value="${t.b}"></td><td><select class="rs">${o.map(s=>`<option ${s==t.st?"selected":""}>${s}</option>`).join("")}</select></td><td><b>${t.p}%</b><div style="height:5px;background:var(--bd);border-radius:3px;margin-top:3px"><div style="height:5px;width:${t.p}%;background:${ST[t.st]};border-radius:3px"></div></div></td><td><input type="text" class="rr" placeholder="เหตุผล"></td><td style="white-space:nowrap">${t.ty=="Other stop"?"":`<button class="chip" data-q="start" data-qid="${t.id}">▶ เริ่ม</button> <button class="chip" data-q="done" data-qid="${t.id}">✔ เสร็จ</button> `}<button class="btn rsv">บันทึก</button></td></tr>`).join("")}
+function re(){$("#etb").innerHTML=S.tasks.map((r,i)=>{const o=r[10]=="Other stop";return`<tr><td><b>${r[0]}</b></td><td>${esc(r[1])}</td><td>${esc(r[2])}<div>${chips(r[7]||[])}</div></td><td><span class="tg" style="background:${o?"#14532d":"#111827"}">${o?"Other stop":"PM"}</span></td><td style="white-space:nowrap">${fm(r[4])} ${r[8]||"00:00"}<br>→ ${fm(r[5])} ${fh(eh(r[9]))}</td><td>${r[6]}</td><td style="white-space:nowrap"><button class="chip" data-te="${i}">✎ แก้ไข</button> <button class="chip" data-del="${i}">🗑</button></td></tr>`}).join("")}
+function rv(){$("#zlist").innerHTML=S.sh.map((z,i)=>`<div class="evr"><span class="dot" style="background:${z.c}"></span><div><b>${esc(z.l)}</b> <span class="mut">${fm(z.a)}–${fm(z.b)}</span><div>${z.ln&&z.ln.length?z.ln.map(l=>`<span class="tg" style="background:#2b4a9a">${esc(l)}</span>`).join(""):'<span class="tg" style="background:var(--grey)">กระทบทุกไลน์</span>'}</div></div><button class="chip" data-ze="${i}">✎ แก้ไข</button><button class="chip" data-zd="${i}">✕</button></div>`).join("")||'<span class="mut">ยังไม่มีอีเว้น</span>'}
+function lg(){$("#log").innerHTML=S.log.length?`<table><tr><th>วันที่</th><th>งาน</th><th>ประเภท</th><th>เดิม → ใหม่</th><th>เหตุผล</th></tr>${S.log.slice().reverse().map(l=>`<tr><td>${fm(l.d)}</td><td>${l.id} ${esc(l.ln)}</td><td>${l.ty}</td><td>${l.o} → ${l.n}</td><td>${esc(l.r||"–")}</td></tr>`).join("")}</table>`:`<div class="mut">ยังไม่มีการเปลี่ยนแผน</div>`}
+const render=()=>{rg();rr();re();rv();lg();rtg();rgp()};
+function apply(id,na,nb,s,p,r){const t=EA().find(x=>x.id==id);if(!na||nb<na){alert("วันที่ไม่ถูกต้อง (End ต้องไม่น้อยกว่า Start)");return false}
+const o=S.ov[id]=S.ov[id]||{};
+if(na!=t.a||nb!=t.b){S.log.push({d:today(),id,ln:t.ln,ty:na>t.a?"เลื่อนวัน":na<t.a?"เร่งวันเข้ามา":"ปรับระยะเวลา",o:fm(t.a)+"–"+fm(t.b),n:fm(na)+"–"+fm(nb),r});o.a=na;o.b=nb}
+if(s!=t.st){S.log.push({d:today(),id,ln:t.ln,ty:s=="Cancelled"?"ยกเลิกงาน":"เปลี่ยนสถานะ",o:t.st,n:s,r});o.s=s}
+o.p=p;save();render();if(s=="Done"&&t.st!="Done")boom();return true}
+function open_(id){const t=EA().find(x=>x.id==id);if(!t)return;let st=t.st;
+const SI={"Planned":"⏳","In Progress":"▶","Done":"✔","Cancelled":"✖"},SL={"Planned":"วางแผน","In Progress":"กำลังทำ","Done":"เสร็จแล้ว","Cancelled":"ยกเลิก"};
+$("#dr").innerHTML=`<div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div><h3 style="margin:0">${esc(t.ln)}</h3><div class="mut">${t.id} · ${esc(nm(t))}</div></div><span class="tg" style="background:${t.ty=="Other stop"?"#14532d":"#111827"}">${t.ty}</span></div><div style="margin:6px 0">${chips(t.tg)}</div>
+<div class="mut" style="margin-bottom:6px">สถานะ – กดเพื่อเปลี่ยน</div><div class="stp" id="stp">${Object.keys(ST).map(k=>`<button type="button" class="stb ${k==st?"on":""}" data-st="${k}" style="--c:${ST[k]}"><span>${SI[k]}</span>${SL[k]}</button>`).join("")}</div>
+<div class="prg"><div style="width:${t.p}%;background:${ST[t.st]}"></div></div><div class="mut" style="margin:3px 0 8px">คืบหน้า (ตามเวลา) ${t.p}% · แผนเดิม ${fm(t.a0)} – ${fm(t.b0)} · เวลา ${trg(t)} · ${t.h} ชม.</div>
+<div class="fr"><div><label>Start ใหม่</label><input type="date" id="na" value="${t.a}"></div><div><label>End ใหม่</label><input type="date" id="nb" value="${t.b}"></div></div>
+<div class="mut" style="margin-bottom:6px">ปรับเร็ว: <button type="button" class="chip" data-sh="-1,-1">◀ เร็วขึ้น 1 วัน</button> <button type="button" class="chip" data-sh="1,1">เลื่อน 1 วัน ▶</button> <button type="button" class="chip" data-sh="7,7">เลื่อน 1 สัปดาห์</button> <button type="button" class="chip" data-sh="0,1">ขยาย +1 วัน</button></div>
+<pre>${esc(t.d)}</pre><input type="text" id="rs" style="width:100%" placeholder="เหตุผลที่เปลี่ยน (ถ้ามี)"><div style="margin:6px 0">${["รออะไหล่/วัสดุ","ปรับตามแผนผลิต","รออนุมัติ","ทีมงานไม่พอ","สภาพอากาศ"].map(r=>`<button type="button" class="chip" data-rs="${r}">${r}</button>`).join(" ")}</div>${btns("บันทึก")}`;
+$("#ov").classList.add("on");$("#cx").onclick=shut;
+$("#sv0").onclick=()=>{if(apply(id,$("#na").value,$("#nb").value,st,0,$("#rs").value))shut()};
+$("#stp").onclick=e=>{const b=e.target.closest("[data-st]");if(!b)return;st=b.dataset.st;$$("#stp .stb").forEach(x=>x.classList.toggle("on",x==b))}}
+function pg(p){$$(".pg").forEach(x=>x.classList.toggle("hide",x.id!="p-"+p));$$(".nv").forEach(b=>b.classList.toggle("on",b.dataset.p==p));if(p=="g")rg();if(p=="x"){$("#xf").value=ws;$("#xt").value=we;upX()}scrollTo(0,0)}
+$$(".nv").forEach(b=>b.onclick=()=>pg(b.dataset.p));
+document.addEventListener("click",e=>{const x=e.target.closest("[data-id]");if(x&&!e.target.closest("[data-q]"))open_(x.dataset.id);
+if(e.target==$("#ov"))$("#ov").classList.remove("on");
+if(e.target.id=="mr"){more=!more;strip()}
+const k=e.target.closest(".k");if(k){fst=k.dataset.s;$$("#fs .chip").forEach(c=>c.classList.toggle("on",c.dataset.s==fst));pg("g")}
+const dl=e.target.closest("[data-del]");if(dl)ask("ลบงานนี้ออกจากแผน?",()=>{const r=S.tasks.splice(+dl.dataset.del,1)[0];delete S.ov[r[0]];save();render()},"ลบ");
+const zd=e.target.closest("[data-zd]");if(zd)ask("ลบอีเว้นนี้?",()=>{S.sh.splice(+zd.dataset.zd,1);save();render()},"ลบ");
+if(e.target.classList.contains("rsv")){const tr=e.target.closest("tr");apply(tr.dataset.t,tr.querySelector(".ra").value,tr.querySelector(".rb").value,tr.querySelector(".rs").value,0,tr.querySelector(".rr").value)}});
+document.addEventListener("change",e=>{const el=e.target;if(el.dataset.f!=null){const r=S.tasks[+el.dataset.i];r[+el.dataset.f]=el.type=="number"?+el.value:el.value;if(D(r[5])/DAY+eh(r[9])/24<=D(r[4])/DAY+tm(r[8])/24)alert("เวลาสิ้นสุดต้องหลังเวลาเริ่ม");save();rg();rr()}});
+document.addEventListener("input",e=>{if(e.target.dataset.zi!=null){S.sh[e.target.dataset.zi].c=e.target.value;save();gantt()}});
+function setR(k){rng=k;const td=today(),d=new Date(D(td)),y=d.getUTCFullYear(),m=d.getUTCMonth(),M=(a,n)=>Date.UTC(y,m+a,n);
+if(k=="wk"){ws=add(td,-((d.getUTCDay()+6)%7));we=add(ws,6)}
+else if(k=="mo"){ws=iso(M(0,1));we=iso(M(1,0))}
+else if(k=="nm"){ws=iso(M(1,1));we=iso(M(2,0))}
+else if(k=="mx"){ws=iso(M(0,1));we=iso(M(mN,0))}
+else if(k=="all"){const a=EA().filter(t=>t.a);if(a.length){ws=add(a.reduce((z,t)=>t.a<z?t.a:z,a[0].a),-3);we=add(a.reduce((z,t)=>t.b>z?t.b:z,a[0].b),3)}}
+else if(k=="cu"){ws=$("#rf").value||ws;we=$("#rt").value||we}
+$("#rf").value=ws;$("#rt").value=we;$("#cr").style.display=k=="cu"?"inline-flex":"none";
+$$("[data-k]").forEach(c=>c.classList.toggle("on",c.dataset.k==k));$("#mm").classList.toggle("on",k=="mx");$("#mm").value=k=="mx"?mN:"";rg()}
+function nav(s){if(rng=="wk"){ws=add(ws,7*s);we=add(ws,6)}
+else if(["mo","nm","mx","m"].includes(rng)){const k=rng=="mx"?mN:1,d=new Date(D(ws)),y=d.getUTCFullYear(),m=d.getUTCMonth();ws=iso(Date.UTC(y,m+k*s,1));we=iso(Date.UTC(y,m+k*s+k,0));if(rng!="mx")rng="m"}
+else{const n=df(we,ws)+1;ws=add(ws,n*s);we=add(we,n*s)}
+$("#rf").value=ws;$("#rt").value=we;$$("[data-k]").forEach(c=>c.classList.toggle("on",c.dataset.k==rng));$("#mm").classList.toggle("on",rng=="mx");$("#mm").value=rng=="mx"?mN:"";gantt()}
+$("#rk").innerHTML=[["wk","รายสัปดาห์"],["mo","เดือนนี้"],["nm","เดือนหน้า"],["mx",""]].map(a=>a[0]=="mx"?`<select class="chip" id="mm"><option value="">📆 หลายเดือน</option>${[2,3,4,5,6].map(n=>`<option value="${n}">ดู ${n} เดือน</option>`).join("")}</select>`:`<button class="chip" data-k="${a[0]}">${a[1]}</button>`).join("");
+$("#rk2").innerHTML=[["all","ทั้งแผน"],["cu","📅 กำหนดเอง"]].map(a=>`<button class="chip" data-k="${a[0]}">${a[1]}</button>`).join("");
+$("#rk").onclick=$("#rk2").onclick=e=>{const c=e.target.closest("[data-k]");if(c)setR(c.dataset.k)};
+$("#prev").onclick=()=>nav(-1);$("#next").onclick=()=>nav(1);$("#tod").onclick=()=>setR(["wk","mx"].includes(rng)?rng:"mo");
+$("#rf").onchange=$("#rt").onchange=()=>{if($("#rf").value&&$("#rt").value&&$("#rt").value>=$("#rf").value)setR("cu")};
+$("#lead").onchange=e=>{lead=+e.target.value;rg()};
+$("#sim").onchange=e=>{sim=e.target.value;setR(rng=="cu"?"mo":rng=="m"?"mo":rng)};
+$("#q").oninput=e=>{filt=e.target.value.toLowerCase();gantt()};
+$("#bm").onclick=e=>{const on=document.body.classList.toggle("bk");e.target.classList.toggle("on",on);e.target.textContent=on?"⬛ แท่งสีดำ":"🎨 แท่งตามสถานะ"};
+$("#fs").innerHTML=["","Planned","In Progress","Done","Cancelled"].map(s=>`<button class="chip ${s?"":"on"}" data-s="${s}">${s||"ทั้งหมด"}</button>`).join(" ");
+$("#fs").onclick=e=>{const b=e.target.closest("[data-s]");if(!b)return;fst=b.dataset.s;$$("#fs .chip").forEach(x=>x.classList.toggle("on",x==b));gantt()};
+$("#rst").onclick=()=>ask("ล้างข้อมูลที่แก้ไขทั้งหมด (แผน/ปรับแผน/อีเว้น) กลับเป็นค่าเริ่มต้น?",()=>{S={ov:{},log:[],sh:DSH(),tasks:T.map(r=>r.slice()),tags:DTG(),groups:DGP(),rm:{},draft:""};S.tasks.forEach(r=>{r[7]=TG[r[0]]||[];const z=TT[r[0]]||["00:00","23:59"];r[8]=z[0];r[9]=z[1];r[10]="PM"});save();render()},"ล้าง");
+$("#th").onclick=()=>{const r=document.documentElement,d=r.dataset.theme=="dark"||(!r.dataset.theme&&matchMedia("(prefers-color-scheme:dark)").matches);r.dataset.theme=d?"light":"dark"};
+let rz;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(()=>{if(!$("#p-g").classList.contains("hide"))gantt()},150)});
+const tip=document.createElement("div");tip.id="tip";document.body.appendChild(tip);
+function tipHtml(t){const td=today(),s=df(t.a,td),e=df(t.b,td),days=df(t.b,t.a)+1,el=t.st=="Cancelled"?0:t.st=="Done"?days:Math.max(0,Math.min(days,df(td,t.a)+1)),sh=t.a!=t.a0||t.b!=t.b0,dd=df(t.a,t.a0);
+let w;if(t.st=="Done")w="✅ เสร็จแล้ว";else if(t.st=="Cancelled")w="✖ ยกเลิกแล้ว";else if(e<0)w="⚠ เลยกำหนด "+(-e)+" วัน";else if(s>0)w="⏳ เริ่มในอีก "+s+" วัน";else w="▶ กำลังทำ เหลือ "+(e+1)+" วัน";
+return `<div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b style="font-size:15px">${esc(t.ln)}</b><span class="badge" style="background:${ST[t.st]}">${t.st}</span></div><div class="mut" style="margin:2px 0 8px">${esc(nm(t))}</div><div style="margin-bottom:6px"><span class="tg" style="background:${t.ty=="Other stop"?"#14532d":"#111827"}">${t.ty}</span>${chips(t.tg)}</div><div class="tr"><span>📅 วันที่</span><b>${fm(t.a)} – ${fm(t.b)} (${dlab(t)})</b></div><div class="tr"><span>🕘 เวลา PM</span><b>${trg(t)}</b></div><div class="tr"><span>⏱️ ชั่วโมง</span><b>${t.h} ชม.</b></div><div class="tr"><span>🕒 สถานะเวลา</span><b>${w}</b></div><div class="tr"><span>📈 ความคืบหน้า (ตามเวลา)</span><b>${t.p}%</b></div><div class="tb"><i style="width:${t.p}%;background:${ST[t.st]}"></i></div>${sh?`<div class="tw">🔁 แผนถูกเปลี่ยน: เดิม ${fm(t.a0)} – ${fm(t.b0)}${dd?" ("+(dd>0?"เลื่อน +":"เร่ง ")+dd+" วัน)":""}</div>`:""}${(()=>{const ev=S.sh.filter(z=>(!z.ln||!z.ln.length||z.ln.includes(t.ln))&&z.a<=t.b&&z.b>=t.a);return ev.length?`<div class="tw">🎉 อีเว้นที่กระทบไลน์นี้: ${ev.map(z=>`<span class="tg" style="background:${z.c}">${esc(z.l)}</span>`).join("")}</div>`:""})()}<pre>${esc(t.d.split("\n").slice(0,4).join("\n"))}</pre><div class="mut">👆 คลิกเพื่อปรับแผน / เปลี่ยนสถานะ</div>`}
+const gt=$("#gantt");
+gt.addEventListener("mouseover",e=>{const x=e.target.closest("[data-id]");if(!x)return;const t=EA().find(r=>r.id==x.dataset.id);if(t){tip.innerHTML=tipHtml(t);tip.style.setProperty("--c",ST[t.st]);tip.classList.add("on")}});
+gt.addEventListener("mouseout",e=>{const r=e.relatedTarget;if(!r||!r.closest||!r.closest("[data-id]"))tip.classList.remove("on")});
+gt.addEventListener("mousemove",e=>{if(!tip.classList.contains("on"))return;let x=e.clientX+18,y=e.clientY+18;const w=tip.offsetWidth,h=tip.offsetHeight;if(x+w>innerWidth-12)x=e.clientX-w-18;if(y+h>innerHeight-12)y=Math.max(12,e.clientY-h-18);tip.style.left=x+"px";tip.style.top=y+"px"});
+gt.addEventListener("click",()=>tip.classList.remove("on"));
+$("#addb").onclick=()=>openTask();
+gt.addEventListener("dblclick",e=>{const c=e.target.closest(".cv[data-ln]");if(!c||e.target.closest(".bar"))return;openTask(null,c.dataset.ln,add(ws,Math.floor((e.clientX-c.getBoundingClientRect().left)/CW)))});
+const tsel=()=>[...$$("#tpw .tp.on")].map(b=>b.dataset.tp);
+function tpick(sel){return`<div>${S.tags.map(x=>`<button type="button" class="tg tp ${sel.includes(x.n)?"on":""}" data-tp="${esc(x.n)}" style="--c:${x.c}">${esc(x.n)}</button>`).join("")}</div><div class="bar2" style="margin:6px 0 0"><input type="text" id="tn" placeholder="สร้าง Tag ใหม่…" style="width:150px"><input type="color" id="tcn" value="#6366f1" style="width:36px;height:30px;padding:2px"><button type="button" class="chip" id="tadd">+ สร้าง</button></div>`}
+function mkTag(n,c){n=n.trim();if(!n)return false;if(S.tags.some(x=>x.n==n)){alert("มี Tag นี้แล้ว");return false}S.tags.push({n,c});save();return true}
+function rtg(){$("#tlist").innerHTML=S.tags.map((x,i)=>`<div class="evr"><span class="dot" style="background:${x.c}"></span><div><b>${esc(x.n)}</b> <span class="mut">${S.tasks.filter(r=>(r[7]||[]).includes(x.n)).length} งาน</span></div><button class="chip" data-tg="${i}">✎ แก้ไข</button><button class="chip" data-td="${i}">✕</button></div>`).join("")||'<span class="mut">ยังไม่มี Tag</span>'}
+document.addEventListener("click",e=>{const t=e.target;const b=t.closest("[data-tp]");if(b){b.classList.toggle("on");return}
+if(t.id=="tadd"){const sel=tsel(),n=$("#tn").value.trim();if(mkTag(n,$("#tcn").value)){sel.push(n);$("#tpw").innerHTML=tpick(sel);rtg()}}
+const td=t.closest("[data-td]");if(td)ask("ลบ Tag นี้? (จะถูกถอดออกจากทุกงาน)",()=>{const n=S.tags.splice(+td.dataset.td,1)[0].n;S.tasks.forEach(r=>{r[7]=(r[7]||[]).filter(x=>x!=n)});save();render()},"ลบ");});
+document.addEventListener("input",e=>{if(e.target.dataset.tc!=null){S.tags[+e.target.dataset.tc].c=e.target.value;save();rg()}});
+$("#lbm").onchange=e=>{lbm=e.target.value;gantt()};
+function colp(c){$("#app").classList.toggle("col",!!c);S.col=!!c;save();setTimeout(()=>{if(!$("#p-g").classList.contains("hide"))gantt()},300)}
+$("#hide").onclick=()=>colp(1);$("#show").onclick=()=>colp(0);if(S.col)$("#app").classList.add("col");
+const scTxt=z=>z.ln&&z.ln.length?" · กระทบ: "+z.ln.join(", "):" · กระทบทุกไลน์";
+const gcol=l=>{const g=S.groups.find(g=>g.lines.includes(l));return g?g.c:"transparent"};
+const lsel=c=>[...c.querySelectorAll("[data-lp].on")].map(b=>b.dataset.lp);
+function lpick(sel,ng){return`<div class="lpk">${!ng&&S.groups.length?`<div class="mut" style="margin-bottom:4px">กลุ่ม (กดเพื่อเลือก/ยกเลิกทั้งกลุ่ม)</div><div>${S.groups.map((g,i)=>`<button type="button" class="tg tp" data-lg="${i}" style="--c:${g.c}">🗂️ ${esc(g.n)}</button>`).join("")}</div>`:""}<div class="mut" style="margin:4px 0">ไลน์${ng?"":" (ไม่เลือก = ทุกไลน์)"}</div><div>${LINES.map(l=>`<button type="button" class="tg tp ${sel.includes(l)?"on":""}" data-lp="${esc(l)}" style="--c:#2b4a9a">${esc(l)}</button>`).join("")}</div></div>`}
+function upG(){if(fgrp&&!S.groups.some(g=>g.n==fgrp))fgrp="";$("#gsel").innerHTML=`<option value="">ทุกกลุ่มไลน์</option>`+S.groups.map(g=>`<option value="${esc(g.n)}" ${g.n==fgrp?"selected":""}>🗂️ ${esc(g.n)}</option>`).join("")}
+function rgp(){upG();$("#glist").innerHTML=S.groups.map((g,i)=>`<div class="evr"><span class="dot" style="background:${g.c}"></span><div><b>${esc(g.n)}</b> <span class="mut">${g.lines.length} ไลน์</span><div>${g.lines.map(l=>`<span class="tg" style="background:${g.c}">${esc(l)}</span>`).join("")}</div></div><button class="chip" data-ge="${i}">✎ แก้ไข</button><button class="chip" data-gd="${i}">✕</button></div>`).join("")||'<span class="mut">ยังไม่มีกลุ่ม</span>'}
+document.addEventListener("click",e=>{const t=e.target;
+const lgb=t.closest("[data-lg]");if(lgb){const c=lgb.closest(".lpk"),g=S.groups[+lgb.dataset.lg],bs=[...c.querySelectorAll("[data-lp]")].filter(b=>g.lines.includes(b.dataset.lp)),all=bs.every(b=>b.classList.contains("on"));bs.forEach(b=>b.classList.toggle("on",!all))}
+const lpb=t.closest("[data-lp]");if(lpb)lpb.classList.toggle("on");
+const ge=t.closest("[data-ge]");if(ge)openGrp(+ge.dataset.ge);
+const gd=t.closest("[data-gd]");if(gd)ask("ลบกลุ่มนี้? (อีเว้นที่เลือกไลน์ไว้แล้วจะไม่เปลี่ยน)",()=>{S.groups.splice(+gd.dataset.gd,1);save();render()},"ลบ");
+const ze=t.closest("[data-ze]");if(ze)openEv(+ze.dataset.ze)});
+document.addEventListener("input",e=>{if(e.target.dataset.gc!=null){S.groups[+e.target.dataset.gc].c=e.target.value;save();gantt()}});
+$("#gsel").onchange=e=>{fgrp=e.target.value;gantt()};
+function tick(){const xf=nowF()-D(ws)/DAY;$$(".td").forEach(e=>{e.style.left=xf*CW+"px"})}
+setInterval(tick,30000);setInterval(()=>{if(!$("#tip").classList.contains("on")&&!$("#ov").classList.contains("on")&&!$("#p-g").classList.contains("hide"))rg()},600000);
+function toast(m){let t=$("#toast");if(!t){t=document.createElement("div");t.id="toast";document.body.appendChild(t)}t.textContent=m;t.classList.remove("u");t.classList.add("on");clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove("on"),3200)}
+window.alert=toast;
+const shut=()=>$("#ov").classList.remove("on");
+function ask(msg,ok,label){$("#dr").innerHTML=`<h3 style="margin:0 0 8px">ยืนยัน</h3><p>${msg}</p><p style="display:flex;gap:8px;justify-content:flex-end"><button class="btn g" id="cx">ยกเลิก</button><button class="btn" id="okb" style="background:var(--red)">${label||"ยืนยัน"}</button></p>`;$("#ov").classList.add("on");$("#cx").onclick=shut;$("#okb").onclick=()=>{shut();ok()}}
+const btns=l=>`<p style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:0"><button class="btn g" id="cx">ยกเลิก</button><button class="btn" id="sv0">${l}</button></p>`;
+function openTask(i,ln,dt){if(!canW){toast("โหมดดูอย่างเดียว");return}const r=i==null?null:S.tasks[i],a=r?r[4]:(dt||today()),b=r?r[5]:a,ts=r?r[8]||"00:00":"00:00",te=r?r[9]||"23:59":"23:59",ty=r?r[10]||"PM":"PM",cur=r?r[1]:ln;
+$("#dr").innerHTML=`<h3 style="margin:0 0 10px">${r?"✎ แก้ไขแผน "+esc(r[0]):"➕ ลงแผนใหม่"}</h3>
+<div id="aty" data-v="${ty}" style="display:flex;gap:6px;margin-bottom:10px"><button type="button" class="chip ${ty=="PM"?"on":""}" data-ty="PM">🔧 PM</button><button type="button" class="chip ${ty=="PM"?"":"on"}" data-ty="Other stop">⏸ Other stop</button></div>
+<div class="fr"><div><label>Line (เลือกจากไลน์ที่มี)</label><select id="al">${(!cur||LINES.includes(cur)?LINES:[...LINES,cur]).map(l=>`<option value="${esc(l)}" ${l==cur?"selected":""}>${esc(l)}</option>`).join("")}</select></div><div><label>ชั่วโมง</label><input type="number" id="ah" value="${r?r[6]:24}"></div><div><label>Start</label><input type="date" id="aa" value="${a}"></div><div><label>เวลาเริ่ม</label><input type="time" id="ats" value="${ts}"></div><div><label>End</label><input type="date" id="ab" value="${b}"></div><div><label>เวลาสิ้นสุด</label><input type="time" id="ate" value="${te}"></div></div>
+<div class="mut" style="margin:-2px 0 8px">ช่วงเวลาด่วน: <button type="button" class="chip" data-tt="00:00,23:59">ทั้งวัน</button> <button type="button" class="chip" data-tt="08:00,17:00">08:00–17:00</button> <button type="button" class="chip" data-tt="09:00,12:00">ครึ่งเช้า</button> <button type="button" class="chip" data-tt="13:00,17:00">ครึ่งบ่าย</button></div>
+<input type="text" id="at" style="width:100%;margin-bottom:8px" placeholder="ชื่องาน เช่น Overhaul motor" value="${r?esc(r[2]):""}"><label class="mut">Tag – PM อะไร (เลือกได้หลายอัน หรือสร้างใหม่)</label><div id="tpw" style="margin-bottom:8px">${tpick(r?r[7]||[]:[])}</div><textarea id="ad" rows="3" style="width:100%" placeholder="รายละเอียด / ขอบเขตงาน">${r?esc(r[3]):""}</textarea>${btns(r?"บันทึก":"ลงแผน")}`;
+$("#ov").classList.add("on");$("#cx").onclick=shut;
+const ch=()=>{if(!$("#ah").dataset.m)$("#ah").value=Math.max(0,Math.round((D($("#ab").value)-D($("#aa").value))/DAY*24+eh($("#ate").value)-tm($("#ats").value)))};["aa","ab","ats","ate"].forEach(k=>$("#"+k).oninput=ch);$("#ah").oninput=()=>{$("#ah").dataset.m=1};if(r)$("#ah").dataset.m=1;else ch();
+$("#sv0").onclick=()=>{const t=$("#at").value.trim(),x=$("#aa").value,y=$("#ab").value;if(!t||!x||!y||D(y)/DAY+eh($("#ate").value)/24<=D(x)/DAY+tm($("#ats").value)/24){alert("กรอกชื่องาน และ Start/End/เวลา ให้ถูกต้อง");return}
+const row=[r?r[0]:"PM-"+String(Math.max(0,...S.tasks.map(q=>+q[0].slice(3)))+1).padStart(3,"0"),$("#al").value,t,$("#ad").value,x,y,+$("#ah").value||0,tsel(),$("#ats").value||"00:00",$("#ate").value||"23:59",$("#aty").dataset.v];
+if(r)S.tasks[i]=row;else S.tasks.push(row);save();shut();render();toast(r?"บันทึกการแก้ไขแล้ว":"ลงแผนแล้ว")}}
+function openTag(i){const x=i==null?{n:"",c:"#6366f1"}:S.tags[i];$("#dr").innerHTML=`<h3 style="margin:0 0 8px">${i==null?"➕ สร้าง Tag":"✎ แก้ไข Tag"}</h3><div class="bar2" style="margin-top:0"><input type="text" id="tn2" value="${esc(x.n)}" placeholder="ชื่อ Tag"><input type="color" id="tc2" value="${x.c}" style="width:44px;height:34px;padding:2px"></div>${btns("บันทึก")}`;$("#ov").classList.add("on");$("#cx").onclick=shut;
+$("#sv0").onclick=()=>{const n=$("#tn2").value.trim();if(!n){alert("ใส่ชื่อ Tag");return}if(S.tags.some((y,j)=>y.n==n&&j!=i)){alert("มี Tag นี้แล้ว");return}
+if(i==null)S.tags.push({n,c:$("#tc2").value});else{const o=S.tags[i].n;S.tags[i]={n,c:$("#tc2").value};S.tasks.forEach(r=>{r[7]=(r[7]||[]).map(z=>z==o?n:z)})}save();shut();render();toast("บันทึก Tag แล้ว")}}
+function openGrp(i){const g=i==null?{n:"",c:"#f97316",lines:[]}:S.groups[i];$("#dr").innerHTML=`<h3 style="margin:0 0 8px">${i==null?"➕ สร้างกลุ่มไลน์":"✎ แก้ไขกลุ่มไลน์"}</h3><div class="bar2" style="margin-top:0"><input type="text" id="gen" value="${esc(g.n)}" placeholder="ชื่อกลุ่ม เช่น EPL"><input type="color" id="gec" value="${g.c}" style="width:44px;height:34px;padding:2px"></div><div id="gew">${lpick(g.lines,1)}</div>${btns("บันทึก")}`;$("#ov").classList.add("on");$("#cx").onclick=shut;
+$("#sv0").onclick=()=>{const n=$("#gen").value.trim(),ls=lsel($("#gew"));if(!n||!ls.length){alert("ใส่ชื่อกลุ่มและเลือกไลน์อย่างน้อย 1 ไลน์");return}if(S.groups.some((y,j)=>y.n==n&&j!=i)){alert("มีกลุ่มนี้แล้ว");return}const o={n,c:$("#gec").value,lines:ls};if(i==null)S.groups.push(o);else Object.assign(g,o);save();shut();render();toast("บันทึกกลุ่มแล้ว")}}
+function openEv(i){const z=i==null?{l:"",a:today(),b:today(),c:"#00bcd4",ln:[]}:S.sh[i];$("#dr").innerHTML=`<h3 style="margin:0 0 8px">${i==null?"➕ เพิ่มอีเว้น":"✎ แก้ไขอีเว้น"}</h3><div class="fr"><div style="grid-column:1/3"><label>ชื่ออีเว้น</label><input type="text" id="el" value="${esc(z.l)}"></div><div><label>เริ่ม</label><input type="date" id="ea" value="${z.a}"></div><div><label>สิ้นสุด</label><input type="date" id="eb" value="${z.b}"></div><div><label>สี</label><input type="color" id="ec" value="${z.c}" style="width:60px;height:34px"></div></div><div id="epw">${lpick(z.ln||[])}</div>${btns("บันทึก")}`;$("#ov").classList.add("on");$("#cx").onclick=shut;
+$("#sv0").onclick=()=>{const a=$("#ea").value,b=$("#eb").value;if(!a||!b||b<a){alert("ใส่วันเริ่ม–สิ้นสุดให้ถูกต้อง");return}const o={l:$("#el").value||"อีเว้น",a,b,c:$("#ec").value,ln:lsel($("#epw"))};if(i==null)S.sh.push(o);else Object.assign(z,o);save();shut();render();toast("บันทึกอีเว้นแล้ว")}}
+document.addEventListener("click",e=>{const t=e.target;
+const ty=t.closest("[data-ty]");if(ty){const c=ty.closest("#aty");c.dataset.v=ty.dataset.ty;c.querySelectorAll("[data-ty]").forEach(b=>b.classList.toggle("on",b==ty))}
+const te=t.closest("[data-te]");if(te)openTask(+te.dataset.te);
+const tg=t.closest("[data-tg]");if(tg)openTag(+tg.dataset.tg);
+if(t.id=="gnew")openGrp();if(t.id=="znew")openEv();if(t.id=="tnew")openTag()});
+$("#tsel").onchange=e=>{fty=e.target.value;gantt()};
+function isAct(t){if(t.st=="Done"||t.st=="Cancelled")return false;if(t.st=="In Progress")return true;const n=nowF();return n>=D(t.a)/DAY+t.hs/24&&n<=D(t.b)/DAY+t.he/24}
+function act(){const l=EA().filter(isAct).sort((a,b)=>(a.ty=="Other stop")-(b.ty=="Other stop")||D(a.b)-D(b.b)),td=today();
+$("#act").innerHTML=`<div class="act"><div class="acl">▶ กำลังทำ PM / Other stop อยู่<b>${l.length}</b></div>${l.length?l.map(t=>`<div class="ac${t.ty=="Other stop"?" os":""}" data-id="${t.id}" title="${esc(t.ln)}${t.ty=="Other stop"?" (Other stop)":""}"><b>${t.ty=="Other stop"?"⏸ ":""}${esc(SN[t.ln]||t.ln)}</b><span>${t.ty=="Other stop"?"อยู่ในช่วง Stop · เหลือ "+Math.max(0,df(t.b,td)+1)+" วัน":t.st=="Planned"?"ถึงเวลาแล้ว":"เหลือ "+Math.max(0,df(t.b,td)+1)+" วัน"} · ${t.p}%</span>${t.ty=="Other stop"?"":t.st=="Planned"?`<button class="qb pu" data-q="start" data-qid="${t.id}">▶ เริ่ม PM เลย</button>`:`<button class="qb" data-q="done" data-qid="${t.id}">✔ เสร็จแล้ว</button>`}<i style="width:${t.p}%"></i></div>`).join(""):'<span class="mut">ยังไม่มีไลน์ที่กำลังทำ PM หรือ Other stop ตอนนี้</span>'}</div>`}
+let AC=null;const seenN=new Set();let fl;
+function beep(){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);o.frequency.value=880;g.gain.setValueAtTime(.0001,AC.currentTime);g.gain.exponentialRampToValueAtTime(.2,AC.currentTime+.03);g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+.55);o.start();o.stop(AC.currentTime+.6)}catch(e){}}
+function flash(n){clearInterval(fl);let k=0;const b="PM Shutdown Monitor";fl=setInterval(()=>{document.title=k++%2?b:"🔔 มี "+n+" รายการเร่งด่วน!";if(k>9){clearInterval(fl);strip()}},900)}
+function npop(x){const t=x[1],el=document.createElement("div");el.className="np";el.style.setProperty("--c",LC[x[0]]);el.innerHTML=`<b>${LI[x[0]]} ${esc(t.ln)}</b><span>${esc(nm(t))}</span><em>${x[2]}</em><button aria-label="ปิด">✕</button>`;
+el.onclick=e=>{el.remove();if(e.target.tagName!="BUTTON")open_(t.id)};$("#npw").appendChild(el);
+try{if(window.Notification&&Notification.permission=="granted")new Notification("PM: "+t.ln,{body:x[2]})}catch(e){}}
+function chk(first){if(!S.nt)return;const fresh=alerts().filter(x=>x[0]<2).filter(x=>{const k=x[1].id+"|"+x[0]+"|"+today();if(seenN.has(k))return false;seenN.add(k);return true});
+if(fresh.length){fresh.slice(0,5).forEach(npop);beep();flash(fresh.length)}else if(first)toast("เปิดแจ้งเตือนแล้ว – ตอนนี้ไม่มีรายการเร่งด่วน ✅")}
+function upN(){const n=alerts().filter(x=>x[0]<2).length,b=$("#ntf");if(!b)return;b.textContent=(S.nt?"🔔 แจ้งเตือน: เปิด":"🔕 แจ้งเตือน: ปิด")+(n?" ("+n+")":"");b.classList.toggle("onb",!!S.nt)}
+$("#ntf").onclick=async()=>{S.nt=!S.nt;try{localStorage.setItem("pmmon1",JSON.stringify(S))}catch(e){}
+if(S.nt){seenN.clear();beep();try{if(window.Notification&&Notification.permission=="default")await Notification.requestPermission()}catch(e){}chk(true)}else{$("#npw").innerHTML="";clearInterval(fl);strip()}upN()};
+setInterval(()=>{chk();upN()},60000);
+async function initHosted(){const edit=location.hash=="#edit";
+try{const r=await fetch("data.json?"+Date.now(),{cache:"no-store"});if(r.ok){const o=await r.json();if(!edit||!HADLOCAL){Object.assign(S,{ov:o.ov||{},log:o.log||[],sh:o.sh,tasks:o.tasks,tags:o.tags,groups:o.groups,rm:o.rm||{},draft:o.draft||""});norm();render()}}}catch(e){}
+lastJ=SH();
+if(!edit){canW=false;document.body.classList.add("ro");setSyn("👁 โหมดดูอย่างเดียว (ข้อมูลจาก data.json)")}else setSyn("✏️ โหมดแก้ไข (เฉพาะเครื่องนี้) – แก้เสร็จกด 📤 ส่งออก → สำรองข้อมูล แล้วอัปโหลดเป็น data.json")}
+async function initDB(){try{if(!window.claude||!claude.use){await initHosted();return}
+const db=await claude.use("db");if(!db){setSyn("💾 บันทึกในเบราว์เซอร์นี้เท่านั้น");return}
+const u=await claude.use("user");if(u){try{canW=(await u.can("data.write"))!==false}catch(e){}}
+if(!canW){document.body.classList.add("ro");setSyn("👁 โหมดดูอย่างเดียว")}else setSyn("☁️ บันทึกบนคลาวด์ (แชร์ร่วมกัน)");
+DOC=db.doc("pm/state");let first=true;
+DOC.onSnapshot(sn=>{const d=sn.exists?sn.data():null;
+if(d&&d.j){if(d.j!==lastJ){lastJ=d.j;try{Object.assign(S,JSON.parse(d.j));norm();try{localStorage.setItem("pmmon1",JSON.stringify(S))}catch(e){}render();if(!first)toast("🔄 มีการอัปเดตจากผู้ใช้อื่น")}catch(e){}}}
+else if(canW){lastJ="";push()}
+first=false},()=>setSyn("⚠ เชื่อมต่อฐานข้อมูลไม่ได้"))}catch(e){setSyn("💾 บันทึกในเบราว์เซอร์นี้เท่านั้น")}}
+async function dl(name,data){try{const d=window.claude&&claude.use?await claude.use("downloads"):null;if(!d){const b=data instanceof Blob?data:new Blob([data]),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);toast("ดาวน์โหลดไฟล์แล้ว: "+name);return}await d.save({filename:name,data});toast("บันทึกไฟล์แล้ว")}catch(e){if(e&&e.code=="declined")return;toast("บันทึกไฟล์ไม่สำเร็จ ("+((e&&e.code)||"error")+")")}}
+const xPlan=()=>[["ID","Line","ประเภท","งาน","Tag","Start","เวลาเริ่ม","End","เวลาสิ้นสุด","ชั่วโมง","สถานะ","% ตามเวลา","Start เดิม","End เดิม","เลื่อน (วัน)","รายละเอียด"],...EA().map(t=>[t.id,t.ln,t.ty,nm(t),t.tg.join(", "),t.a,fh(t.hs),t.b,fh(t.he),t.h,t.st,t.p,t.a0,t.b0,df(t.a,t.a0),t.d])];
+const xLog=()=>[["วันที่","ID","Line","ประเภท","เดิม","ใหม่","เหตุผล"],...S.log.map(l=>[l.d,l.id,l.ln,l.ty,l.o,l.n,l.r||""])];
+const xEv=()=>[["อีเว้น","เริ่ม","สิ้นสุด","กระทบไลน์"],...S.sh.map(z=>[z.l,z.a,z.b,z.ln&&z.ln.length?z.ln.join(", "):"ทุกไลน์"])];
+const xGp=()=>[["กลุ่ม","ไลน์"],...S.groups.map(g=>[g.n,g.lines.join(", ")])];
+$("#xxl").onclick=()=>buildX().catch(e=>toast("สร้างไฟล์ไม่สำเร็จ: "+(e&&e.message||e)));
+$("#xcsv").onclick=()=>dl("PM_Plan_"+today()+".csv","\ufeff"+xPlan().map(r=>r.map(c=>'"'+String(c??"").replace(/"/g,'""')+'"').join(",")).join("\r\n"));
+$("#xjs").onclick=()=>dl((window.claude&&window.claude.use?"PM_backup_"+today()+".json":"data.json"),JSON.stringify({v:1,exported:today(),...JSON.parse(SH())},null,1));
+$("#xpr").onclick=()=>{pg("g");setTimeout(()=>{try{window.print()}catch(e){toast("พิมพ์ไม่ได้ในหน้านี้ – ใช้ Ctrl+P / ⌘+P")}},300)};
+$("#xin").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(!o.tasks||!Array.isArray(o.tasks))throw 0;ask("นำเข้าไฟล์ <b>"+esc(f.name)+"</b> ? ข้อมูลปัจจุบันจะถูกแทนที่",()=>{Object.assign(S,{ov:o.ov||{},log:o.log||[],sh:o.sh,tasks:o.tasks,tags:o.tags,groups:o.groups,rm:o.rm||{},draft:o.draft||""});norm();save();render();toast("นำเข้าข้อมูลแล้ว")},"นำเข้า")}catch(x){toast("ไฟล์ไม่ถูกต้อง (ต้องเป็นไฟล์สำรอง JSON ของหน้านี้)")}e.target.value=""};r.readAsText(f)};
+function boom(){const E=["🎉","✨","🟣","⭐","🟩","🎊"];for(let i=0;i<38;i++){const e=document.createElement("div");e.className="cf";e.textContent=E[i%E.length];e.style.left=Math.random()*100+"vw";e.style.animationDelay=Math.random()*.5+"s";document.body.appendChild(e);setTimeout(()=>e.remove(),2800)}}
+function toastU(m,fn){let t=$("#toast");if(!t){t=document.createElement("div");t.id="toast";document.body.appendChild(t)}t.innerHTML=esc(m)+' <button id="tun">↩ ย้อนกลับ</button>';t.classList.add("on","u");$("#tun").onclick=()=>{t.classList.remove("on","u");fn()};clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove("on","u"),7000)}
+function qset(id,st){const t=EA().find(x=>x.id==id);if(!t||t.st==st)return;const po=S.ov[id]?{...S.ov[id]}:null,pl=S.log.length,o=S.ov[id]=S.ov[id]||{};o.s=st;
+S.log.push({d:today(),id,ln:t.ln,ty:st=="Done"?"ปิดงาน":st=="In Progress"?"เริ่ม PM":st=="Cancelled"?"ยกเลิกงาน":"เปลี่ยนสถานะ",o:t.st,n:st,r:"ปุ่มลัด"});save();render();if(st=="Done")boom();
+toastU((st=="Done"?"✔ ปิดงาน ":st=="In Progress"?"▶ เริ่ม PM ":"เปลี่ยนสถานะ ")+t.ln+" แล้ว",()=>{if(po)S.ov[id]=po;else delete S.ov[id];S.log.length=pl;save();render()})}
+document.addEventListener("click",e=>{const t=e.target;
+const q=t.closest("[data-q]");if(q)qset(q.dataset.qid,q.dataset.q=="start"?"In Progress":q.dataset.q=="done"?"Done":"Cancelled");
+const sh=t.closest("[data-sh]");if(sh){const[a,b]=sh.dataset.sh.split(",").map(Number),na=$("#na"),nb=$("#nb");na.value=add(na.value,a);nb.value=add(nb.value,b)}
+const rs=t.closest("[data-rs]");if(rs)$("#rs").value=rs.dataset.rs;
+if(t.id=="xrmb")openRemark();if(t.id=="xcal")calCsv()});
+function upX(){$("#xdr").textContent=S.draft||"–";$("#xrm").textContent=Object.keys(S.rm||{}).length}
+function openRemark(){$("#dr").innerHTML=`<h3 style="margin:0 0 8px">✎ Draft / Remark ต่อไลน์</h3><label class="mut">ชื่อ Draft (ต่อท้ายชื่อเดือนหลัก เช่น December (Draft 3))</label><input type="text" id="rdr" value="${esc(S.draft||"")}" style="width:100%;margin-bottom:8px" placeholder="เช่น Draft 3"><div style="max-height:46vh;overflow:auto">${LINES.map((l,i)=>`<label class="mut">${esc(l)}</label><input type="text" data-rm="${i}" value="${esc(S.rm[l]||"")}" style="width:100%;margin-bottom:6px">`).join("")}</div>${btns("บันทึก")}`;
+$("#ov").classList.add("on");$("#cx").onclick=shut;$("#sv0").onclick=()=>{S.draft=$("#rdr").value.trim();$$("[data-rm]").forEach(i=>{const l=LINES[+i.dataset.rm],v=i.value.trim();if(v)S.rm[l]=v;else delete S.rm[l]});save();shut();upX();toast("บันทึก Remark แล้ว")}}
+const csvT=rows=>rows.map(r=>r.map(c=>'"'+String(c??"").replace(/"/g,'""')+'"').join(",")).join("\r\n");
+function calCsv(){const td=today(),rows=[["Subject","Start Date","Start Time","End Date","End Time","All Day Event","Description","Location","Private"]];
+const md=x=>{const[a,b,c]=x.split("-");return b+"/"+c+"/"+a},t12=h=>{h=h%24;const H=Math.floor(h),M=Math.round((h-H)*60);return String(H%12||12).padStart(2,"0")+":"+String(M).padStart(2,"0")+" "+(H<12?"AM":"PM")};
+EA().filter(t=>t.ty!="Other stop"&&t.st!="Done"&&t.st!="Cancelled"&&df(t.b,td)>=0).forEach(t=>{const ln=SN[t.ln]||t.ln,ds=nm(t)+" | "+t.h+" ชม. | "+t.d.replace(/\n/g," / ");
+[[-7,"⏰ เตรียมความพร้อม PM "+ln+" (อีก 7 วัน)"],[-1,"⏰ พรุ่งนี้เริ่ม PM "+ln]].forEach(([k,sj])=>{const d=add(t.a,k);if(df(d,td)>=0)rows.push([sj,md(d),"08:00 AM",md(d),"08:30 AM","False",ds,t.ln,"False"])});
+rows.push(["▶ เริ่ม PM "+ln+" – "+nm(t),md(t.a),t12(t.hs),md(t.he>=24?add(t.b,1):t.b),t12(t.he>=24?0:t.he),"False",ds,t.ln,"False"]);
+rows.push(["🏁 วันสุดท้าย PM "+ln,md(t.b),"08:00 AM",md(t.b),"08:30 AM","False",ds,t.ln,"False"])});
+if(rows.length<2){toast("ไม่มี PM ที่ยังไม่จบให้สร้างนัด");return}dl("PM_Calendar_"+today()+".csv","\ufeff"+csvT(rows))}
+const HOLE={"2026-12-05":"H.M. The King Bhumibol Adulyadej's Birthday, National Day and Father's Day","2026-12-10":"Constitution Day","2026-12-31":"New Year's Eve","2027-01-01":"New Year's Day"},ME=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const rngT=(a,b)=>{const p=x=>x.split("-"),A=p(a),B=p(b);return A[1]==B[1]?A[2]+"-"+B[2]+"/"+A[1]:A[2]+"/"+A[1]+"-"+B[2]+"/"+B[1]};
+const callH=t=>(SN[t.ln]||t.ln)+(t.ty=="Other stop"?" (Other stop)":"")+" : "+rngT(t.a,t.b)+" ("+fh(t.hs)+"-"+fh(t.he)+") "+t.h+" hrs.";
+async function buildX(){if(typeof ExcelJS=="undefined"){toast("โหลดตัวสร้าง Excel ไม่ได้ – ใช้ CSV แทน");return}
+const f=$("#xf").value||ws,tt=$("#xt").value||we;if(tt<f){toast("ช่วงวันที่ไม่ถูกต้อง");return}const nd=Math.min(200,df(tt,f)+1);
+const ar=h=>({argb:"FF"+h.replace("#","").toUpperCase()}),fl=h=>({type:"pattern",pattern:"solid",fgColor:ar(h)}),lt=(h,p)=>{h=h.replace("#","");return[0,2,4].map(i=>{const c=parseInt(h.substr(i,2),16);return Math.round(c+(255-c)*p).toString(16).padStart(2,"0")}).join("")};
+const bd=c=>({style:"thin",color:ar(c)}),BX={top:bd("7F7F7F"),left:bd("BFBFBF"),bottom:bd("7F7F7F"),right:bd("BFBFBF")},FN=(o)=>({name:"Arial",...o});
+const all=EA(),ev=S.sh.filter(z=>z.b>=f&&z.a<=tt),HR=2+ev.length;
+const wb=new ExcelJS.Workbook();wb.creator="PM Monitor";
+const w=wb.addWorksheet("สรุป Timeline",{views:[{state:"frozen",xSplit:1,ySplit:HR,showGridLines:false}],pageSetup:{orientation:"landscape",paperSize:8,fitToPage:true,fitToWidth:1,fitToHeight:0}});
+w.getColumn(1).width=30;for(let i=0;i<nd;i++)w.getColumn(2+i).width=3.9;const RC=2+nd;w.getColumn(RC).width=48;
+const keys=[],cnt={};for(let i=0;i<nd;i++){const d=new Date(D(add(f,i)));keys.push(d.getUTCFullYear()*12+d.getUTCMonth())}
+all.filter(t=>t.ty!="Other stop"&&t.st!="Cancelled").forEach(t=>{for(let i=Math.max(0,df(t.a,f));i<=Math.min(nd-1,df(t.b,f));i++)cnt[keys[i]]=(cnt[keys[i]]||0)+1});
+const mainK=+Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0];
+w.getRow(1).height=28;w.getRow(2).height=24;
+let i0=0;for(let i=1;i<=nd;i++){if(i==nd||keys[i]!=keys[i0]){const n=i-i0,mm=keys[i0]%12,c=w.getCell(1,2+i0);if(n>1)w.mergeCells(1,2+i0,1,1+i);c.value=n<6?ME[mm].slice(0,3):ME[mm]+(keys[i0]==mainK&&S.draft?" ("+S.draft+")":"");c.font=FN({bold:true,size:n<6?11:16});c.alignment={horizontal:"center",vertical:"middle"};c.border={top:{style:"medium"},bottom:{style:"medium"},left:{style:"medium"},right:{style:"medium"}};c.fill=fl("FFFFFF");i0=i}}
+for(let i=0;i<nd;i++){const s=add(f,i),wd=new Date(D(s)).getUTCDay(),c=w.getCell(2,2+i);c.value=new Date(D(s)).getUTCDate();c.font=FN({bold:true,size:13});c.alignment={horizontal:"center",vertical:"middle"};c.fill=fl(HOL[s]?"FFFF00":(wd==0||wd==6)?"BFBFBF":"FFFFFF");c.border=BX}
+w.mergeCells(1,1,2,1);const ca=w.getCell(1,1);ca.value={richText:[{text:"                      Month\n",font:{name:"Arial",bold:true,size:13}},{text:"Line",font:{name:"Arial",bold:true,size:15}}]};ca.alignment={wrapText:true,vertical:"middle",horizontal:"left"};ca.border={top:{style:"medium"},left:{style:"medium"},bottom:{style:"medium"},right:{style:"medium"},diagonal:{up:false,down:true,style:"medium"}};
+w.mergeCells(1,RC,2,RC);const rh=w.getCell(1,RC);rh.value="Remark";rh.font=FN({bold:true,size:22});rh.alignment={horizontal:"center",vertical:"middle"};rh.border={top:{style:"medium"},bottom:{style:"medium"},left:{style:"medium"},right:{style:"medium"}};
+ev.forEach((z,k)=>{const r=3+k;w.getRow(r).height=18;const c0=Math.max(0,df(z.a,f)),c1=Math.min(nd-1,df(z.b,f));const a=w.getCell(r,1);a.value="Event"+(z.ln&&z.ln.length?" ("+z.ln.map(l=>SN[l]||l).join(", ")+")":" (All lines)");a.font=FN({size:9,italic:true});a.alignment={vertical:"middle",wrapText:false};
+for(let i=c0;i<=c1;i++)w.getCell(r,2+i).fill=fl(lt(z.c,.35));if(c1>c0)w.mergeCells(r,2+c0,r,2+c1);const c=w.getCell(r,2+c0);c.value=z.l;c.font=FN({bold:true,size:10});c.alignment={horizontal:"center",vertical:"middle"};c.border={top:{style:"dashed",color:ar(z.c)},bottom:{style:"dashed",color:ar(z.c)},left:{style:"dashed",color:ar(z.c)},right:{style:"dashed",color:ar(z.c)}}});
+const lines=[...LINES,...[...new Set(all.map(t=>t.ln))].filter(l=>!LINES.includes(l))];let r=HR+1;
+for(const L0 of lines){const ts=all.filter(t=>t.ln==L0&&t.a&&t.b>=f&&t.a<=tt).sort((a,b)=>D(a.a)-D(b.a)),ends=[],lane={};ts.forEach(t=>{let k=0;while(ends[k]!=null&&ends[k]>=D(t.a))k++;ends[k]=D(t.b);lane[t.id]=k});
+const nl=Math.max(1,ends.length),r0=r,r1=r+nl-1,g=S.groups.find(g=>g.lines.includes(L0));for(let k=0;k<nl;k++)w.getRow(r0+k).height=nl>1?24:34;
+for(let k=0;k<nl;k++)for(let i=0;i<nd;i++){const s=add(f,i),wd=new Date(D(s)).getUTCDay(),c=w.getCell(r0+k,2+i);let col="FFFFFF";if(wd==0||wd==6)col="D9D9D9";if(HOL[s])col="A6A6A6";const es=ev.filter(z=>(!z.ln||!z.ln.length||z.ln.includes(L0))&&z.a<=s&&z.b>=s);if(es.length)col=lt(es[es.length-1].c,.45);c.fill=fl(col);c.border=BX}
+if(nl>1){w.mergeCells(r0,1,r1,1);w.mergeCells(r0,RC,r1,RC)}
+const la=w.getCell(r0,1);la.value=L0;la.font=FN({bold:true,size:13});la.alignment={wrapText:true,vertical:"middle",horizontal:"left"};la.border={top:bd("000000"),bottom:bd("000000"),right:bd("000000"),left:{style:"thick",color:ar(g?g.c:"FFFFFF")}};la.fill=fl("FFFFFF");
+const rm=w.getCell(r0,RC);rm.value=S.rm[L0]||"";rm.font=FN({size:11});rm.alignment={wrapText:true,vertical:"middle",horizontal:"left"};rm.border={top:bd("000000"),bottom:bd("000000"),right:bd("000000"),left:bd("000000")};
+const occ=[...Array(nl)].map(()=>new Set()),labs=[];
+ts.forEach(t=>{const k=lane[t.id],row=r0+k,i0=Math.max(0,df(t.a,f)),i1=Math.min(nd-1,df(t.b,f)),os=t.ty=="Other stop",cx=t.st=="Cancelled";
+if(t.a!=t.a0||t.b!=t.b0)for(let i=Math.max(0,df(t.a0,f));i<=Math.min(nd-1,df(t.b0,f));i++)if(i<i0||i>i1)w.getCell(row,2+i).fill={type:"pattern",pattern:"lightUp",fgColor:ar("2B7BB9"),bgColor:ar("CFEFFF")};
+for(let i=i0;i<=i1;i++){w.getCell(row,2+i).fill=fl(cx?"7F7F7F":os?"14532D":"000000");occ[k].add(i)}
+const len=i1-i0+1;if(len>1)w.mergeCells(row,2+i0,row,2+i1);const mc=w.getCell(row,2+i0);
+mc.value=len>=4?(cx?"✖ ":t.st=="Done"?"✔ ":"")+(os?"Other stop · ":"")+dlab(t).replace(" วัน"," days").replace(" ชม."," hrs"):"";mc.font=FN({bold:true,size:12,color:ar("FFFFFF"),strike:cx});mc.alignment={horizontal:"center",vertical:"middle"};
+mc.note=callH(t)+"\n"+t.d+(t.tg.length?"\nTag: "+t.tg.join(", "):"");
+if(len<5||t.hs>0||t.he<24)labs.push([k,row,i1+1,callH(t)])});
+labs.forEach(([k,row,ci,tx])=>{if(ci<nd&&!occ[k].has(ci)){const c=w.getCell(row,2+ci);c.value=tx;c.font=FN({size:9});c.alignment={vertical:"middle",horizontal:"left",wrapText:false}}});
+r=r1+1}
+const hs=[];for(let i=0;i<nd;i++){const s=add(f,i);if(HOL[s])hs.push([i,s])}
+if(hs.length){w.getRow(r).height=210;const a=w.getCell(r,1);a.value="Holidays";a.font=FN({bold:true,size:12});a.alignment={vertical:"middle"};a.border=BX;
+for(let i=0;i<nd;i++)w.getCell(r,2+i).border=BX;hs.forEach(([i,s])=>{const c=w.getCell(r,2+i);c.value=HOLE[s]||HOL[s];c.fill=fl("A6A6A6");c.font=FN({bold:true,size:8});c.alignment={textRotation:90,wrapText:true,vertical:"middle",horizontal:"center"}});r++}
+r++;const lg=[["PM","000000","FFFFFF"],["Other stop","14532D","FFFFFF"],["Cancelled","7F7F7F","FFFFFF"],...S.sh.map(z=>[z.l,lt(z.c,.35),"000000"])];
+lg.forEach(([tx,bg,fc],k)=>{const c=w.getCell(r+k,1);c.value=tx;c.fill=fl(bg);c.font=FN({bold:true,size:10,color:ar(fc)});c.alignment={horizontal:"center"}});
+const lh=w.getCell(r+lg.length,1);lh.value="แผนเดิม (ก่อนเลื่อน)";lh.fill={type:"pattern",pattern:"lightUp",fgColor:ar("2B7BB9"),bgColor:ar("CFEFFF")};lh.font=FN({bold:true,size:10});lh.alignment={horizontal:"center"};
+const tab=(n,rows,ws_)=>{const x=wb.addWorksheet(n,{views:[{state:"frozen",ySplit:1}]});rows.forEach(rw=>x.addRow(rw));ws_.forEach((v,i)=>x.getColumn(i+1).width=v);x.getRow(1).eachCell(c=>{c.fill=fl("1F3864");c.font=FN({bold:true,color:ar("FFFFFF")})});x.eachRow((rw,n)=>{if(n>1)rw.eachCell(c=>{c.alignment={vertical:"top",wrapText:true};c.font=FN({size:10})})});return x};
+tab("รายละเอียดงาน",[["Line","หัวข้อ","รายละเอียด / ขอบเขตงาน"],...all.map(t=>[t.ln,callH(t),t.d])],[30,48,90]);
+tab("แผน PM",xPlan(),[9,28,11,36,26,11,9,11,9,8,12,10,11,11,9,60]);tab("ประวัติเปลี่ยนแผน",xLog(),[11,9,28,16,22,22,40]);tab("อีเว้น",xEv(),[30,11,11,60]);tab("กลุ่มไลน์",xGp(),[22,90]);
+const buf=await wb.xlsx.writeBuffer();dl("PM_Summary_"+today()+".xlsx",new Blob([buf]))}
+function upM(){$("#more").classList.toggle("hide",!S.more);$("#mre").textContent="⚙️ เพิ่มเติม "+(S.more?"▴":"▾")+((fst||filt||fgrp||fty)?" ●":"")}
+$("#mre").onclick=()=>{S.more=!S.more;save();upM()};
+document.addEventListener("click",e=>{const t=e.target;if(t.id=="evt"){S.evc=!S.evc;save();gantt()}
+const tt=t.closest("[data-tt]");if(tt){const[a,b]=tt.dataset.tt.split(",");$("#ats").value=a;$("#ate").value=b;$("#ats").dispatchEvent(new Event("input"))}});
+$("#mm").onchange=e=>{if(e.target.value){mN=+e.target.value;setR("mx")}};
+setR("mx");render();initDB();
+</script>
+</body>
+</html>
